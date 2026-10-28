@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Matura Master 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Plan nauki do matury</p>
+          <h1>Matura Master</h1>
+        </div>
+        <div class="header-badges">
+          <span class="badge danger">10 przedmiotów</span>
+          <span class="badge success">pełna baza tematów</span>
+        </div>
+      </header>
+
+      <section class="toolbar">
+        <div class="search-box">
+          <span class="search-icon">🔎</span>
+          <input id="searchInput" type="text" placeholder="Wpisz dowolne słowo z matematyki, fizyki, chemii, biologii, języków, geografii lub historii..." autocomplete="off" />
+          <div class="search-tools">
+            <button id="cameraSearchButton" class="camera-button" type="button" aria-label="Rozpoznaj zadanie z zdjęcia">📷</button>
+            <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden" />
+          </div>
+          <div id="suggestions" class="search-suggestions hidden" aria-live="polite"></div>
+        </div>
+
+        <div class="filters">
+          <select id="subjectFilter">
+            <option value="all">Wszystkie przedmioty</option>
+            <option value="mathematics">Matematyka</option>
+            <option value="physics">Fizyka</option>
+            <option value="chemistry">Chemia</option>
+            <option value="biology">Biologia</option>
+            <option value="polish">Język polski</option>
+            <option value="english">Angielski</option>
+            <option value="french">Francuski</option>
+            <option value="german">Niemiecki</option>
+            <option value="geography">Geografia</option>
+            <option value="history">Historia</option>
+          </select>
+
+          <select id="levelFilter">
+            <option value="all">Wszystkie poziomy</option>
+            <option value="podstawowy">Podstawowy</option>
+            <option value="rozszerzony">Rozszerzony</option>
+            <option value="studia">Studia</option>
+            <option value="specjalizacja">Specjalizacja / medycyna</option>
+            <option value="olimpiada">Olimpiada</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="stats-grid" id="statsGrid"></section>
+
+      <main class="content-grid">
+        <section class="main-panel">
+          <div class="section-header">
+            <h2>Tematy maturalne</h2>
+            <button id="toggleAll" class="soft-button">Rozwiń / zwiń wszystko</button>
+          </div>
+          <div id="subjectsContainer" class="subjects-container"></div>
+          <div id="detailPanel" class="detail-panel hidden"></div>
+        </section>
+
+        <aside class="quiz-panel">
+          <div class="section-header compact">
+            <h2>Mini test</h2>
+            <button id="nextQuestion" class="soft-button">Następne pytanie</button>
+          </div>
+          <div id="quizCard" class="quiz-card"></div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
