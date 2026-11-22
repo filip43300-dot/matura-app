@@ -1,25 +1,10 @@
 window.AIService = (() => {
-  const ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
-  const MODEL = 'llama-3.3-70b-versatile';
   const getKey = () => localStorage.getItem('groq_api_key') || '';
 
   async function request(prompt) {
     const key = getKey();
     if (!key) throw new Error('Brak klucza Groq AI. Kliknij „⚙️ Klucz API” i wklej klucz zaczynający się od gsk_.');
-
-    const response = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: MODEL, messages: [{ role: 'user', content: prompt }], temperature: 0.7, top_p: 0.9, max_tokens: 4000 })
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Groq API (${response.status}): ${text.slice(0,180)}`);
-    }
-
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || '';
+    return window.GroqClient.complete(prompt, { temperature: 0.7, top_p: 0.9, max_tokens: 4000 });
   }
 
   function cacheKey(prefix, parts) { return `matura:${prefix}:${parts.join('|').toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/gi,'-')}`; }
