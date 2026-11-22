@@ -113,25 +113,34 @@ document.addEventListener('click',(e)=>{
       const subjectKey=action.dataset.subject;
       const topicTitle=action.dataset.topic;
       const subjectName=action.dataset.subjectName;
+      const modeKey=state.mode;
       action.disabled=true;
-      action.textContent='⌛ Rozszerzam pełną listę…';
-      window.GroqService.expandTopic({subject:subjectName,topic:topicTitle}).then((items)=>{
-        const subject=getMode().subjects[subjectKey];
-        const topic=subject?.topics.find((item)=>item.title===topicTitle);
-        if(topic){
+      action.textContent='⏳ Generowanie pełnej listy...';
+      void (async()=>{
+        try {
+          const items=await window.GroqService.expandTopic({subject:subjectName,topic:topicTitle});
+          if(!Array.isArray(items)||!items.length)throw new Error('AI nie zwróciło żadnych nowych zagadnień.');
+          const subject=window.CURRICULUM[modeKey].subjects[subjectKey];
+          const topic=subject?.topics.find((item)=>item.title===topicTitle);
+          if(!topic)throw new Error(`Nie znaleziono tematu „${topicTitle}”.`);
           topic.subtopics=[...new Set([...topic.subtopics,...items])];
           const cacheKey=`matura:curriculum:${subjectKey}:${topicTitle}`.toLowerCase();
           localStorage.setItem(cacheKey,JSON.stringify(topic.subtopics));
+          if(state.mode===modeKey){
+            const topicKey=`${subjectKey}|${topicTitle}`;
+            state.subjectsExpanded.add(subjectKey);
+            state.topicsExpanded.add(topicKey);
+            renderSubjects();
+            renderStats();
+            const updatedButton=[...document.querySelectorAll('[data-action="expand-topic-ai"]')].find(button=>button.dataset.subject===subjectKey&&button.dataset.topic===topicTitle);
+            if(updatedButton)updatedButton.textContent='✅ Pełna lista została dodana';
+          }
+        } catch(error) {
+          action.disabled=false;
+          action.textContent='➕ Rozwiń pełną listę zagadnień (AI)';
+          alert(error instanceof Error?error.message:String(error));
         }
-        action.disabled=false;
-        action.textContent='✅ Pełna lista została dodana';
-        renderSubjects();
-        renderStats();
-      }).catch((error)=>{
-        action.disabled=false;
-        action.textContent='➕ Rozwiń pełną listę zagadnień (AI)';
-        alert(error.message);
-      });
+      })();
       return;
     }
     if(t==='subject'){const k=action.dataset.key;state.subjectsExpanded.has(k)?state.subjectsExpanded.delete(k):state.subjectsExpanded.add(k);renderSubjects();}else if(t==='topic'){const k=action.dataset.key;state.topicsExpanded.has(k)?state.topicsExpanded.delete(k):state.topicsExpanded.add(k);renderSubjects();}else if(t==='subtopic'){const subjectName=getMode().subjects[action.dataset.subject]?.name; if(['Angielski','Niemiecki','Francuski'].includes(subjectName)&&action.dataset.subtopic.includes('Rozmowa telefoniczna'))openVoiceLab(subjectName);else{const context=findSubjectTopic(action.dataset.subject,action.dataset.topic,action.dataset.subtopic);if(context)openLesson(context);}}else if(t==='search-result'){const context=findSubjectTopic(action.dataset.subject,action.dataset.topic,action.dataset.subtopic);if(context)openLesson(context);$('suggestions').classList.add('hidden');}else if(t==='ai-search'){openAI(action.dataset.query);$('suggestions').classList.add('hidden');}else if(t==='difficulty'){state.level=action.dataset.level;const context=findSubjectTopic(state.subject,state.topic,state.subtopic);if(context)openLesson(context);}else if(t==='close')$('detailPanel').classList.add('hidden');else if(t==='answer'){const selected=action.dataset.answer;const quiz=window.QuizEngine.getCurrent();const correct=selected===quiz.answer;document.querySelectorAll('[data-action="answer"]').forEach(b=>{b.disabled=true;if(b.dataset.answer===quiz.answer)b.classList.add('correct');});if(!correct)action.classList.add('incorrect');$('quizCard').insertAdjacentHTML('beforeend',`<div class="quiz-explanation"><strong>${correct?'Poprawna odpowiedź!':'Niepoprawna odpowiedź.'}</strong> ${escapeHtml(quiz.explanation)}</div>`);}return;}
