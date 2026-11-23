@@ -1,0 +1,14 @@
+{
+  "name": "Matura Master 2.0",
+  "short_name": "Matura Master",
+  "description": "Kompleksowy system nauki i przygotowania maturalnego",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#17142c",
+  "theme_color": "#17142c",
+  "orientation": "any",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

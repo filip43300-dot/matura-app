@@ -1,0 +1,10 @@
+name = "matura-master-ai"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+OPENAI_MODEL = "gpt-4o-mini"
+GROQ_MODEL = "llama-3.1-8b-instant"
+RATE_LIMIT_ENABLED = "true"
+RATE_LIMIT_REQUESTS = "60"
+RATE_LIMIT_WINDOW_MS = "3600000"
