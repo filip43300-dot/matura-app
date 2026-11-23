@@ -6,6 +6,10 @@ window.GroqClient = (() => {
     'meta-llama/llama-4-scout-17b-16e-instruct',
     'openai/gpt-oss-120b'
   ];
+  const PREFERRED_VISION_MODELS = [
+    'meta-llama/llama-4-scout-17b-16e-instruct',
+    'meta-llama/llama-4-maverick-17b-128e-instruct'
+  ];
   const FALLBACK_MODEL = 'llama-3.1-8b-instant';
   let resolvedApiKey = null;
   let resolvedModelPromise = null;
@@ -30,31 +34,45 @@ window.GroqClient = (() => {
   function getAvailableModels(apiKey) {
     if (!availableModelsPromise || availableModelsApiKey !== apiKey) {
       availableModelsApiKey = apiKey;
-      availableModelsPromise = fetch(MODELS_ENDPOINT, {
+      const request = fetch(MODELS_ENDPOINT, {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${apiKey}` }
       }).then(response => {
-        if (!response.ok) throw new Error(`Groq models request failed (${response.status})`);
+        if (!response.ok) {
+          const error = new Error(`Groq models request failed (${response.status})`);
+          error.status = response.status;
+          error.code = 'MODEL_DISCOVERY_FAILED';
+          throw error;
+        }
         return response.json();
       }).then(result => Array.isArray(result?.data)
         ? result.data.filter(model => typeof model?.id === 'string')
         : []);
+      let cachedRequest;
+      cachedRequest = request.catch(error => {
+        if (availableModelsPromise === cachedRequest) {
+          availableModelsApiKey = null;
+          availableModelsPromise = null;
+        }
+        if (!error.code) error.code = 'MODEL_DISCOVERY_FAILED';
+        throw error;
+      });
+      availableModelsPromise = cachedRequest;
     }
     return availableModelsPromise;
   }
 
   function getActiveVisionModel(apiKey) {
     return getAvailableModels(apiKey).then(models => {
-      const visionModels = models
-        .map(model => model.id)
-        .filter(id => /vision|scout/i.test(id) && !/whisper|guard/i.test(id));
-      const preferred = 'meta-llama/llama-4-scout-17b-16e-instruct';
-      const model = visionModels.includes(preferred) ? preferred : visionModels[0];
-      if (!model) throw new Error('Nie znaleziono aktywnego modelu Groq obsługującego obrazy.');
+      const availableIds = new Set(models.map(model => model.id));
+      const model = PREFERRED_VISION_MODELS.find(id => availableIds.has(id));
+      if (!model) {
+        const error = new Error('To konto Groq nie ma dostępu do modeli obsługujących obrazy.');
+        error.code = 'VISION_MODEL_UNAVAILABLE';
+        throw error;
+      }
       localStorage.setItem('groq_active_vision_model', model);
       return model;
-    }).catch(error => {
-      throw new Error(`Nie udało się wykryć modelu Groq do analizy obrazów: ${error.message}`);
     });
   }
 
@@ -73,7 +91,11 @@ window.GroqClient = (() => {
 
     if (!response.ok) {
       const message = await getErrorMessage(response);
-      throw new Error(`Groq API (${response.status}) at ${ENDPOINT}: ${message}`);
+      const error = new Error(`Groq API (${response.status}) at ${ENDPOINT}: ${message}`);
+      error.status = response.status;
+      error.model = model;
+      error.endpoint = ENDPOINT;
+      throw error;
     }
 
     const data = await response.json();
@@ -94,7 +116,15 @@ window.GroqClient = (() => {
 
   async function completeVision(prompt, imageDataUrl, options = {}) {
     const key = requireKey();
-    const model = await getActiveVisionModel(key);
+    let model;
+    try {
+      model = await getActiveVisionModel(key);
+    } catch (error) {
+      if (error.code === 'VISION_MODEL_UNAVAILABLE' || error.code === 'MODEL_DISCOVERY_FAILED') throw error;
+      const unavailable = new Error(`Nie udało się sprawdzić dostępu do modelu obrazu: ${error.message}`);
+      unavailable.code = 'MODEL_DISCOVERY_FAILED';
+      throw unavailable;
+    }
     return postChat(key, model, [{
       role: 'user',
       content: [

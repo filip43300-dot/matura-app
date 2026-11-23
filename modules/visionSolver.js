@@ -1,4 +1,12 @@
 window.VisionSolver = (() => {
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  }[char]));
+
   function readImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -78,26 +86,51 @@ window.VisionSolver = (() => {
     }
 
     button.disabled = true;
-    result.textContent = 'Analizuję zdjęcie…';
+    const userPrompt = modal.querySelector('#visionPrompt').value.trim();
+    const instructions = `Jesteś polskim nauczycielem. ${userPrompt} Odpowiedz po polsku: najpierw krótko rozpoznaj treść, następnie wyjaśnij rozwiązanie krok po kroku i zakończ odpowiedzią. Zapisuj wzory jako KaTeX w delimitatorach \\(...\\) lub $$...$$. Jeśli fragment jest nieczytelny, zaznacz to i nie zgaduj.`;
     try {
-      const imageDataUrl = await readImage(file);
-      const prompt = `Jesteś polskim nauczycielem. Przeanalizuj dokładnie załączone zdjęcie zadania, równania, reakcji, schematu anatomicznego lub tekstu. ${modal.querySelector('#visionPrompt').value.trim()} Odpowiedz po polsku: najpierw krótko rozpoznaj treść, następnie wyjaśnij rozwiązanie krok po kroku i zakończ odpowiedzią. Zapisuj wzory jako KaTeX w delimitatorach \\(...\\) lub $$...$$. Jeśli fragment jest nieczytelny, zaznacz to i nie zgaduj.`;
-      const answer = await window.GroqClient.completeVision(prompt, imageDataUrl, { temperature: 0.2, max_tokens: 3000 });
-      result.innerHTML = `<div class="vision-answer">${escapeHtml(answer).replace(/\n/g, '<br>')}</div>`;
-      if (window.renderMathInElement) {
-        window.renderMathInElement(result, {
-          delimiters: [
-            { left: '$$', right: '$$', display: true },
-            { left: '\\(', right: '\\)', display: false }
-          ],
-          throwOnError: false
-        });
+      let answer;
+      try {
+        result.textContent = '🧠 Analizuję zdjęcie...';
+        const imageDataUrl = await readImage(file);
+        const prompt = `Przeanalizuj dokładnie załączone zdjęcie zadania, równania, reakcji, schematu anatomicznego lub tekstu. ${instructions}`;
+        answer = await window.GroqClient.completeVision(prompt, imageDataUrl, { temperature: 0.2, max_tokens: 3000 });
+      } catch (error) {
+        if (!shouldUseOcrFallback(error)) throw error;
+        if (!window.Tesseract || typeof window.Tesseract.recognize !== 'function') {
+          throw new Error('Model obrazu jest niedostępny, a moduł OCR Tesseract.js nie został załadowany.');
+        }
+
+        result.textContent = '🔍 Odczytywanie tekstu ze zdjęcia...';
+        const recognition = await window.Tesseract.recognize(file, 'pol+eng');
+        const recognizedText = recognition?.data?.text?.trim();
+        if (!recognizedText) throw new Error('OCR nie rozpoznał tekstu na zdjęciu. Spróbuj użyć wyraźniejszego obrazu.');
+
+        result.textContent = '🧠 Rozwiązywanie zadania...';
+        const ocrPrompt = `${instructions}\n\nTreść odczytana ze zdjęcia (OCR; mogą występować błędy rozpoznawania):\n${recognizedText}\n\nRozwiąż zadanie na podstawie odczytanej treści. Jeśli OCR jest niejednoznaczny, wskaż niepewne fragmenty.`;
+        answer = await window.GroqClient.complete(ocrPrompt, { temperature: 0.2, max_tokens: 3000 });
       }
+
+      result.innerHTML = `<div class="vision-answer">${escapeHtml(answer).replace(/\n/g, '<br>')}</div>`;
+      if (window.renderMathInElement) window.renderMathInElement(result, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '\\(', right: '\\)', display: false }
+        ],
+        throwOnError: false
+      });
     } catch (error) {
-      result.textContent = error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
+      result.textContent = `Nie udało się rozwiązać zdjęcia: ${message}`;
     } finally {
       button.disabled = false;
     }
+  }
+
+  function shouldUseOcrFallback(error) {
+    if (error?.code === 'VISION_MODEL_UNAVAILABLE' || error?.code === 'MODEL_DISCOVERY_FAILED') return true;
+    if (error?.status !== 400 && error?.status !== 404) return false;
+    return /model|vision|image|multimodal|access|not exist|not found|does not/i.test(error.message || '');
   }
 
   return { open };
