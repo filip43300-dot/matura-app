@@ -3,12 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Matura Master 2026</title>
+    <meta name="theme-color" content="#17142c" />
+    <meta name="description" content="Matura Master 2.0 - kompleksowa platforma edukacyjna" />
+    <title>Matura Master 2.0</title>
+    <link rel="manifest" href="manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=light2" />
   </head>
   <body>
     <div class="app-shell">
@@ -23,6 +26,17 @@
           <span class="badge success">pełna baza tematów</span>
         </div>
       </header>
+
+      <nav class="app-navigation" aria-label="Główna nawigacja">
+        <button type="button" class="app-nav-button active" data-app-view="learn">📚 Nauka</button>
+        <button type="button" class="app-nav-button" data-app-view="dashboard">📊 Dashboard</button>
+        <button type="button" class="app-nav-button" data-app-view="tutor">🤖 AI Tutor</button>
+        <button type="button" class="app-nav-button" data-app-view="exams">📝 Egzaminy</button>
+        <button type="button" class="app-nav-button" data-app-view="generator">✨ Generator</button>
+        <button type="button" class="app-nav-button" data-app-view="library">📚 Biblioteka</button>
+        <button type="button" class="app-nav-button" data-app-view="labs">🔬 Laboratoria</button>
+        <button type="button" class="app-nav-button" data-app-view="profile">👤 Profil</button>
+      </nav>
 
       <section class="toolbar">
         <div class="mode-switcher" aria-label="Tryb nauki">
@@ -68,7 +82,7 @@
 
       <section class="stats-grid" id="statsGrid"></section>
 
-      <main class="content-grid">
+      <main class="content-grid app-view active" id="learnView">
         <section class="main-panel">
           <div class="section-header">
             <h2>Tematy maturalne</h2>
@@ -86,6 +100,8 @@
           <div id="quizCard" class="quiz-card"></div>
         </aside>
       </main>
+
+      <main class="app-view" id="workspaceView"></main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -93,14 +109,24 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script src="data/curriculum.js"></script>
     <script src="services/groqClient.js"></script>
     <script src="services/aiService.js"></script>
     <script src="services/voiceCall.js"></script>
     <script src="services/quizEngine.js"></script>
     <script src="services/groqService.js"></script>
-    <script src="modules/visionSolver.js"></script>
-    <script src="modules/languageLab.js"></script>
-    <script src="finalApp.js"></script>
+    <script src="services/educationStore.js?v=2"></script>
+    <script src="services/aiGateway.js?v=2"></script>
+    <script src="services/notationService.js?v=2"></script>
+    <script src="modules/visionSolver.js?v=2"></script>
+    <script src="modules/languageLab.js?v=2"></script>
+    <script src="modules/tutor.js?v=2"></script>
+    <script src="modules/exams.js?v=2"></script>
+    <script src="modules/generator.js?v=2"></script>
+    <script src="modules/labs.js?v=2"></script>
+    <script src="modules/appShell.js?v=2"></script>
+    <script src="finalApp.js?v=2"></script>
   </body>
 </html>

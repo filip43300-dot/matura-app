@@ -1,7 +1,21 @@
 window.AIService = (() => {
   const getKey = () => localStorage.getItem('groq_api_key') || '';
 
+  function readCache(key) {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      localStorage.removeItem(key);
+      return null;
+    }
+  }
+
   async function request(prompt) {
+    if (window.AIGateway?.getSettings().backendUrl) {
+      return window.AIGateway.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 4000 });
+    }
     const key = getKey();
     if (!key) throw new Error('Brak klucza Groq AI. Kliknij „⚙️ Klucz API” i wklej klucz zaczynający się od gsk_.');
     return window.GroqClient.complete(prompt, { temperature: 0.7, top_p: 0.9, max_tokens: 4000 });
@@ -11,9 +25,10 @@ window.AIService = (() => {
 
   async function generateLesson(context) {
     const key = cacheKey('lesson-v2',[context.subject,context.topic,context.subtopic,context.level]);
-    const cached = localStorage.getItem(key);
-    if (cached) return JSON.parse(cached);
-    const prompt = `Jesteś polskim ekspertem EdTech i przygotowujesz kompendium. Wygeneruj WYŁĄCZNIE poprawny JSON po polsku dla lekcji. Klucze: title, definition, explanation, formulas, visualDescription, example, answer, explanationOfAnswer, summary, coreConcepts, clinicalTip, warning, mermaid, chartjs, svg. ` +
+    const cached = readCache(key);
+    if (cached) return cached;
+    const notationInstructions = window.NotationService?.promptInstructions('W polach explanation, formulas i answer używaj poprawnego LaTeX. Odpowiadaj profesjonalnie podręcznikowo.') || '';
+    const prompt = `Jesteś polskim ekspertem EdTech i przygotowujesz kompendium. Wygeneruj WYŁĄCZNIE poprawny JSON po polsku dla lekcji. Klucze: title, definition, explanation, formulas, visualDescription, example, answer, explanationOfAnswer, summary, coreConcepts, clinicalTip, warning, mermaid, chartjs, svg. ${notationInstructions} ` +
       `Kontekst: przedmiot=${context.subject}; dział=${context.topic}; podtemat=${context.subtopic}; poziom=${context.level}. ` +
       `Wymagania: textbook-grade, ściśle odpowiadaj tylko na ten podtemat, oznaczaj kluczowe pojęcia znacznikami **pogrubienia**, wzory zapisuj w składni KaTeX, podaj 3-5 kluczowych definicji i rozwiązane zadanie z pełnym uzasadnieniem. ` +
       `Jeśli temat obejmuje proces biologiczny, fizjologiczny, kliniczny algorytm lub mapę pojęć, wpisz w mermaid poprawny kod Mermaid flowchart; w innym przypadku mermaid ma być pustym tekstem. ` +
@@ -30,16 +45,16 @@ window.AIService = (() => {
   async function generateQuiz(context) {
     const key = cacheKey('quiz',[context.subject,context.topic,context.subtopic,context.level,Date.now()]);
     void key;
-    const prompt = `Wygeneruj WYŁĄCZNIE JSON jako tablicę 5 unikalnych pytań wielokrotnego wyboru. Każdy element ma: question, options (4), answer (dokładny tekst opcji), explanation. Kontekst: przedmiot ${context.subject}, dział ${context.topic}, podtemat ${context.subtopic}, poziom ${context.level}. Zadania nie mogą się powtarzać. Odpowiedź po polsku.`;
+    const prompt = `Wygeneruj WYŁĄCZNIE JSON jako tablicę 5 unikalnych pytań wielokrotnego wyboru. Każdy element ma: question, options (4), answer (dokładny tekst opcji), explanation. Kontekst: przedmiot ${context.subject}, dział ${context.topic}, podtemat ${context.subtopic}, poziom ${context.level}. Zadania nie mogą się powtarzać. Odpowiedź po polsku. ${window.NotationService?.promptInstructions('W pytaniach i rozwiązaniach zapisuj wszystkie wzory jako LaTeX.') || ''}`;
     const text = await request(prompt);
     try { return JSON.parse(text.replace(/```json|```/g,'').trim()).slice(0,5); } catch { throw new Error('AI zwróciło odpowiedź quizową w niepoprawnym formacie. Spróbuj ponownie.'); }
   }
 
   async function explainConcept(query, level='Rozszerzony') {
     const key = cacheKey('search',[query,level]);
-    const cached = localStorage.getItem(key);
-    if (cached) return JSON.parse(cached);
-    const prompt = `Podaj encyklopedyczne, szkoleniowo-tekstowe wyjaśnienie po polsku dla hasła „${query}”, poziom „${level}”. Zwróć WYŁĄCZNIE JSON z title, definition, explanation, formulas, examples, clinicalCorrelation, visualDescription, summary.`;
+    const cached = readCache(key);
+    if (cached) return cached;
+    const prompt = `Podaj encyklopedyczne, szkoleniowo-tekstowe wyjaśnienie po polsku dla hasła „${query}”, poziom „${level}”. Zwróć WYŁĄCZNIE JSON z title, definition, explanation, formulas, examples, clinicalCorrelation, visualDescription, summary. ${window.NotationService?.promptInstructions('Wzory zapisuj jako poprawny LaTeX i objaśniaj symbole.') || ''}`;
     const text = await request(prompt);
     let result;
     try { result=JSON.parse(text.replace(/```json|```/g,'').trim()); } catch { result={title:query,definition:text,explanation:'',formulas:[],examples:[],clinicalCorrelation:'',visualDescription:'Schemat pojęcia',summary:''}; }

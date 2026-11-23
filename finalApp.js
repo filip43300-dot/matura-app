@@ -11,29 +11,48 @@ function renderSubjects(){
   hydrateExpandedCurriculum();
   const container=$('subjectsContainer'); const mode=getMode();
   const priority=state.mode==='medical'?['anatomy','physiology','biochemistry','histology','pathology','pharmacology','microbiology','internal']:['mathematics','chemistry','english','german','french','polish','biology','physics','geography','history'];
+  const subjectFilter=$('subjectFilter')?.value||'all';
+  const levelFilter=$('levelFilter')?.value||'all';
   const entries=state.mode==='medical'
     ?Object.entries(mode.subjects).sort(([,a],[,b])=>{
       const order={'Lata przedkliniczne (Rok 1–2)':0,'Lata kliniczne (Rok 3–5)':1};
       return (order[a.yearGroup]??0)-(order[b.yearGroup]??0);
     })
     :priority.map(k=>[k,mode.subjects[k]]).filter(([,v])=>v);
-  const renderCard=([key,subject])=>`<article class="subject-card">
-    <button class="subject-header" type="button" data-action="subject" data-key="${key}"><span class="subject-name"><span class="subject-icon">${subject.icon}</span>${escapeHtml(subject.name)}</span><span class="subject-meta"><span>${subject.topics.length} tematy</span></span></button>
-    <div class="subject-body ${state.subjectsExpanded.has(key)?'':'hidden'}">${subject.topics.map(topic=>{const tk=`${key}|${topic.title}`;return `<article class="subject-topic">
+  const filteredEntries=entries.filter(([key,subject])=>{
+    if(subjectFilter!== 'all' && key!==subjectFilter)return false;
+    if(levelFilter==='all')return true;
+    if(levelFilter==='specjalizacja')return state.mode==='medical';
+    return subject.topics.some(topic=>{
+      if(levelFilter==='studia')return topic.level==='studia'||topic.level==='medycyna';
+      return topic.level===levelFilter;
+    });
+  });
+  const renderCard=([key,subject])=>{
+    const filteredTopics=subject.topics.filter(topic=>{
+      if(levelFilter==='all')return true;
+      if(levelFilter==='specjalizacja')return state.mode==='medical';
+      if(levelFilter==='studia')return topic.level==='studia'||topic.level==='medycyna';
+      return topic.level===levelFilter;
+    });
+    return `<article class="subject-card">
+    <button class="subject-header" type="button" data-action="subject" data-key="${key}"><span class="subject-name"><span class="subject-icon">${subject.icon}</span>${escapeHtml(subject.name)}</span><span class="subject-meta"><span>${filteredTopics.length} tematy</span></span></button>
+    <div class="subject-body ${state.subjectsExpanded.has(key)?'':'hidden'}">${filteredTopics.map(topic=>{const tk=`${key}|${topic.title}`;return `<article class="subject-topic">
       <button class="topic-header" type="button" data-action="topic" data-key="${tk}"><span><strong>${escapeHtml(topic.title)}</strong></span><span class="topic-badge ${topic.level}">${topic.level}</span></button>
       <div class="subtopic-list ${state.topicsExpanded.has(tk)?'':'hidden'}">${topic.subtopics.map(s=>`<button type="button" class="subtopic-button" data-action="subtopic" data-subject="${key}" data-topic="${escapeHtml(topic.title)}" data-subtopic="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('')}</div>
       <button type="button" class="expand-ai-button" data-action="expand-topic-ai" data-subject="${key}" data-subject-name="${escapeHtml(subject.name)}" data-topic="${escapeHtml(topic.title)}">➕ Rozwiń pełną listę zagadnień (AI)</button>
     </article>`}).join('')}</div></article>`;
+  };
   if(state.mode==='medical'){
     const groups=new Map();
-    entries.forEach(entry=>{
+    filteredEntries.forEach(entry=>{
       const group=entry[1].yearGroup||'Lata przedkliniczne (Rok 1–2)';
       if(!groups.has(group))groups.set(group,[]);
       groups.get(group).push(entry);
     });
     container.innerHTML=[...groups].map(([group,subjects])=>`<section class="curriculum-stage"><h3>${escapeHtml(group)}</h3><div class="curriculum-stage-subjects">${subjects.map(renderCard).join('')}</div></section>`).join('');
   }else{
-    container.innerHTML=entries.map(renderCard).join('');
+    container.innerHTML=filteredEntries.map(renderCard).join('');
   }
 }
 
@@ -57,6 +76,26 @@ function renderSearch(query){
 function findSubjectTopic(subjectKey,topicTitle,subtopic){const subject=getMode().subjects[subjectKey];const topic=subject?.topics.find(t=>t.title===topicTitle);return subject&&topic?{subjectKey,subject,topic,subtopic}:null;}
 
 function renderMath(root=document.body){if(window.renderMathInElement)renderMathInElement(root,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'$',right:'$',display:false}],throwOnError:false});}
+
+function renderNotationContent(root,lesson){
+  if(!window.NotationService)return;
+  const mapping={
+    'definition':lesson.definition,
+    'explanation':lesson.explanation,
+    'clinical-tip':lesson.clinicalTip,
+    'warning':lesson.warning,
+    'example':lesson.example,
+    'answer':lesson.answer,
+    'answer-explanation':lesson.explanationOfAnswer,
+    'summary':lesson.summary
+  };
+  Object.entries(mapping).forEach(([key,value])=>{
+    root.querySelectorAll(`[data-notation="${key}"]`).forEach(host=>window.NotationService.renderInto(host,value||''));
+  });
+  root.querySelectorAll('[data-notation-formula]').forEach((host,index)=>{
+    window.NotationService.renderFormula(host,(lesson.formulas||[])[index]||host.textContent,true);
+  });
+}
 
 function safeSvgElement(svgText){
   if(!svgText)return null;
@@ -150,24 +189,24 @@ async function openLesson(context){
   const panel=$('detailPanel');
   panel.classList.remove('hidden');
   panel.innerHTML=lessonShell(context,{title:'Generowanie lekcji…',definition:'Groq AI przygotowuje treść dopasowaną do poziomu i przedmiotu.',explanation:'',formulas:[],visualDescription:'Schemat zostanie wygenerowany.',example:'',answer:'',explanationOfAnswer:'',summary:'',coreConcepts:[]});
-  try{const lesson=await window.AIService.generateLesson(contextToAI);panel.innerHTML=lessonShell(context,lesson);await renderLessonVisuals(panel);}catch(error){panel.innerHTML=lessonShell(context,{title:context.subtopic,definition:'Lekcja nie została wygenerowana.',explanation:error.message,formulas:[],visualDescription:'Dodaj klucz API, aby wygenerować szczegółową treść.',example:'',answer:'',explanationOfAnswer:'',summary:'',coreConcepts:[context.subtopic]});}
+  try{const lesson=await window.AIService.generateLesson(contextToAI);panel.innerHTML=lessonShell(context,lesson);renderNotationContent(panel,lesson);await renderLessonVisuals(panel);}catch(error){panel.innerHTML=lessonShell(context,{title:context.subtopic,definition:'Lekcja nie została wygenerowana.',explanation:error.message,formulas:[],visualDescription:'Dodaj klucz API, aby wygenerować szczegółową treść.',example:'',answer:'',explanationOfAnswer:'',summary:'',coreConcepts:[context.subtopic]});renderNotationContent(panel,{...error,explanation:error.message});}
   renderMath(panel);
   await generateAndRenderQuiz();
 }
 
 function lessonShell(context,lesson){
-  const formulas=(lesson.formulas||[]).map(f=>`<div class="formula-item"><div class="formula-line">${escapeHtml(f)}</div></div>`).join('')||'<div class="formula-item"><div class="formula-line">Brak wzoru — wymagane analityczne wyjaśnienie.</div></div>';
+  const formulas=(lesson.formulas||[]).map(f=>`<div class="formula-item"><div class="formula-line notation-host" data-notation-formula>${escapeHtml(f)}</div></div>`).join('')||'<div class="formula-item"><div class="formula-line">Brak wzoru — wymagane analityczne wyjaśnienie.</div></div>';
   const chart=typeof lesson.chartjs==='string'?lesson.chartjs:lesson.chartjs?JSON.stringify(lesson.chartjs):'';
   return `<div class="detail-header"><button type="button" class="close-lesson" data-action="close">←</button><div><p class="detail-kicker">${escapeHtml(context.subject.name)} · ${escapeHtml(context.topic.title)}</p><h3>${escapeHtml(lesson.title||context.subtopic)}</h3></div></div>
   <div class="difficulty-switcher">${[['Podstawowy','Podstawowy'],['Rozszerzony','Rozszerzony'],['Studia / Medycyna','Studia / Medycyna'],['Olimpiada','Olimpiada']].map(([key,label])=>`<button type="button" class="difficulty-button ${state.level===key?'active':''}" data-action="difficulty" data-level="${key}">${label}</button>`).join('')}</div>
-  <div class="detail-body lesson-layout"><section class="detail-box span-2 definition-callout"><div class="definition-topline">Definicja</div><p class="definition-main">${formatLessonText(lesson.definition)}</p></section>
-  <section class="detail-box span-2"><h4>Rozwinięte wyjaśnienie</h4><p>${formatLessonText(lesson.explanation)}</p></section>
+  <div class="detail-body lesson-layout"><section class="detail-box span-2 definition-callout"><div class="definition-topline">Definicja</div><div class="definition-main notation-host" data-notation="definition">${escapeHtml(lesson.definition||'')}</div></section>
+  <section class="detail-box span-2"><h4>Rozwinięte wyjaśnienie</h4><div class="notation-host" data-notation="explanation">${escapeHtml(lesson.explanation||'')}</div></section>
   <section class="detail-box span-2 formula-callout"><h4>Wzór / Reakcja</h4><div class="formula-list">${formulas}</div></section>
-  ${lesson.clinicalTip?`<section class="detail-box span-2 tip-callout"><h4>Korelacja kliniczna / Tip maturalny</h4><p>${formatLessonText(lesson.clinicalTip)}</p></section>`:''}
-  ${lesson.warning?`<section class="detail-box span-2 warning-callout"><h4>Uwaga / Częsty błąd</h4><p>${formatLessonText(lesson.warning)}</p></section>`:''}
+  ${lesson.clinicalTip?`<section class="detail-box span-2 tip-callout"><h4>Korelacja kliniczna / Tip maturalny</h4><div class="notation-host" data-notation="clinical-tip">${escapeHtml(lesson.clinicalTip)}</div></section>`:''}
+  ${lesson.warning?`<section class="detail-box span-2 warning-callout"><h4>Uwaga / Częsty błąd</h4><div class="notation-host" data-notation="warning">${escapeHtml(lesson.warning)}</div></section>`:''}
   <section class="detail-box span-2"><h4>Rysunek / schemat / wykres</h4><div class="lesson-visual" data-lesson-visual data-mermaid="${escapeHtml(lesson.mermaid||'')}" data-chart="${escapeHtml(chart)}" data-svg="${escapeHtml(lesson.svg||'')}" data-description="${escapeHtml(lesson.visualDescription||'')}"></div></section>
-  ${lesson.example||lesson.answer?`<section class="detail-box span-2"><h4>Przykładowe zadanie</h4><p><strong>Zadanie:</strong> ${formatLessonText(lesson.example)}</p><p><strong>Odpowiedź:</strong> ${formatLessonText(lesson.answer)}</p><p><strong>Uzasadnienie:</strong> ${formatLessonText(lesson.explanationOfAnswer)}</p></section>`:''}
-  ${lesson.summary||lesson.coreConcepts?.length?`<section class="detail-box span-2"><h4>Podsumowanie</h4><p>${formatLessonText(lesson.summary)}</p><ul>${(lesson.coreConcepts||[]).map(c=>`<li>${formatLessonText(c)}</li>`).join('')}</ul></section>`:''}</div>`;
+  ${lesson.example||lesson.answer?`<section class="detail-box span-2"><h4>Przykładowe zadanie</h4><p><strong>Zadanie:</strong> <span class="notation-host" data-notation="example">${escapeHtml(lesson.example||'')}</span></p><p><strong>Odpowiedź:</strong> <span class="notation-host" data-notation="answer">${escapeHtml(lesson.answer||'')}</span></p><p><strong>Uzasadnienie:</strong> <span class="notation-host" data-notation="answer-explanation">${escapeHtml(lesson.explanationOfAnswer||'')}</span></p></section>`:''}
+  ${lesson.summary||lesson.coreConcepts?.length?`<section class="detail-box span-2"><h4>Podsumowanie</h4><div class="notation-host" data-notation="summary">${escapeHtml(lesson.summary||'')}</div><ul>${(lesson.coreConcepts||[]).map(c=>`<li>${escapeHtml(c)}</li>`).join('')}</ul></section>`:''}</div>`;
 }
 
 async function generateAndRenderQuiz(){
@@ -181,7 +220,7 @@ function renderQuizQuestion(){const question=window.QuizEngine.getCurrent();if(!
  $('quizCard').innerHTML=`<span class="quiz-tag">${escapeHtml(state.subtopic||'Mini test')}</span><h3>${escapeHtml(question.question)}</h3><ul class="answer-list">${question.options.map(o=>`<li><button type="button" data-action="answer" data-answer="${escapeHtml(o)}">${escapeHtml(o)}</button></li>`).join('')}</ul><button type="button" id="generateQuizInline" class="soft-button quiz-refresh">Wygeneruj nowy test</button>`;
 }
 
-async function openAI(query){const panel=$('detailPanel');panel.classList.remove('hidden');panel.innerHTML=`<div class="detail-header"><button type="button" class="close-lesson" data-action="close">←</button><h3>${escapeHtml(query)} — Encyklopedia AI</h3></div><div class="detail-body"><div class="detail-box span-2">Ładowanie encyklopedycznej odpowiedzi…</div></div>`;try{const r=await window.AIService.explainConcept(query,state.level);panel.innerHTML=`<div class="detail-header"><button type="button" class="close-lesson" data-action="close">←</button><h3>${escapeHtml(r.title||query)}</h3></div><div class="detail-body"><section class="detail-box span-2"><div class="definition-topline">Definicja</div><p class="definition-main">${escapeHtml(r.definition)}</p></section><section class="detail-box span-2"><h4>Wyjaśnienie</h4><p>${escapeHtml(r.explanation)}</p></section><section class="detail-box span-2"><h4>Schemat</h4><div class="lesson-visual"><div class="lesson-visual-glyph">${escapeHtml(r.visualDescription)}</div></div></section><section class="detail-box span-2"><h4>Podsumowanie</h4><p>${escapeHtml(r.summary)}</p></section></div>`;renderMath();}catch(e){panel.innerHTML=`<div class="detail-header"><button type="button" class="close-lesson" data-action="close">←</button><h3>Encyklopedia AI</h3></div><div class="detail-body"><div class="detail-box span-2"><strong>Nie udało się pobrać odpowiedzi.</strong><p>${escapeHtml(e.message)}</p></div></div>`;}}
+async function openAI(query){const panel=$('detailPanel');panel.classList.remove('hidden');panel.innerHTML=`<div class="detail-header"><button type="button" class="close-lesson" data-action="close">←</button><h3>${escapeHtml(query)} — Encyklopedia AI</h3></div><div class="detail-body"><div class="detail-box span-2">Ładowanie encyklopedycznej odpowiedzi…</div></div>`;try{const r=await window.AIService.explainConcept(query,state.level);panel.innerHTML=`<div class="detail-header"><button type="button" class="close-lesson" data-action="close">←</button><h3>${escapeHtml(r.title||query)}</h3></div><div class="detail-body"><section class="detail-box span-2"><div class="definition-topline">Definicja</div><div class="definition-main notation-host" id="aiDefinition"></div></section><section class="detail-box span-2"><h4>Wyjaśnienie</h4><div class="notation-host" id="aiExplanation"></div></section><section class="detail-box span-2"><h4>Schemat</h4><div class="lesson-visual"><div class="lesson-visual-glyph">${escapeHtml(r.visualDescription)}</div></div></section><section class="detail-box span-2"><h4>Podsumowanie</h4><div class="notation-host" id="aiSummary"></div></section></div>`;if(window.NotationService){NotationService.renderInto($('aiDefinition'),r.definition||'');NotationService.renderInto($('aiExplanation'),r.explanation||'');NotationService.renderInto($('aiSummary'),r.summary||'');}renderMath();}catch(e){panel.innerHTML=`<div class="detail-header"><button type="button" class="close-lesson" data-action="close">←</button><h3>Encyklopedia AI</h3></div><div class="detail-body"><div class="detail-box span-2"><strong>Nie udało się pobrać odpowiedzi.</strong><p>${escapeHtml(e.message)}</p></div></div>`;}}
 
 function openVoiceLab(subjectName){
   const languages={Angielski:{code:'en-US',lang:'English'},Niemiecki:{code:'de-DE',lang:'German'},Francuski:{code:'fr-FR',lang:'French'}};
@@ -201,17 +240,33 @@ function hydrateExpandedCurriculum(){
   Object.entries(getMode().subjects).forEach(([subjectKey,subject])=>{
     subject.topics.forEach((topic)=>{
       const cacheKey=`matura:curriculum:${subjectKey}:${topic.title}`.toLowerCase();
-      try{const persisted=JSON.parse(localStorage.getItem(cacheKey)||'[]');if(Array.isArray(persisted))topic.subtopics=[...new Set([...topic.subtopics,...persisted])];}catch{}
+      try{
+        const raw=localStorage.getItem(cacheKey);
+        if(!raw)return;
+        const persisted=JSON.parse(raw);
+        if(Array.isArray(persisted)){
+          const safeSubtopics=persisted.filter(item=>typeof item==='string'&&item.trim()).map(item=>item.trim());
+          topic.subtopics=[...new Set([...topic.subtopics,...safeSubtopics])];
+        }
+      }catch{
+        localStorage.removeItem(cacheKey);
+      }
     });
   });
 }
 
 $('searchInput').addEventListener('input',(e)=>renderSearch(e.target.value));
 $('searchInput').addEventListener('keydown',(e)=>{if(e.key==='Enter'){e.preventDefault();const ai=e.target.value.trim();if(ai){$('suggestions').classList.add('hidden');openAI(ai);}else{renderSearch(e.target.value);}}});
+$('subjectFilter').addEventListener('change',()=>renderSubjects());
+$('levelFilter').addEventListener('change',()=>renderSubjects());
 $('apiSettingsButton').addEventListener('click',()=>openApiModal());
 $('cameraSearchButton').addEventListener('click',()=>window.VisionSolver.open());
 $('toggleAll').addEventListener('click',()=>{const all=getMode().subjects;const keys=Object.keys(all);const expanded=keys.every(k=>state.subjectsExpanded.has(k));keys.forEach(k=>expanded?state.subjectsExpanded.delete(k):state.subjectsExpanded.add(k));renderSubjects();});
-$('nextQuestion').addEventListener('click',()=>{$('quizCard').innerHTML='<p>Wybierz podtemat i wygeneruj test.</p>';});
+$('nextQuestion').addEventListener('click',()=>{
+  if(!window.QuizEngine.getCurrent()){$('quizCard').innerHTML='<p>Wybierz podtemat i wygeneruj test.</p>';return;}
+  window.QuizEngine.next();
+  renderQuizQuestion();
+});
 
 document.addEventListener('click',(e)=>{
   const action=e.target.closest('[data-action]');
@@ -250,9 +305,9 @@ document.addEventListener('click',(e)=>{
       })();
       return;
     }
-    if(t==='subject'){const k=action.dataset.key;state.subjectsExpanded.has(k)?state.subjectsExpanded.delete(k):state.subjectsExpanded.add(k);renderSubjects();}else if(t==='topic'){const k=action.dataset.key;state.topicsExpanded.has(k)?state.topicsExpanded.delete(k):state.topicsExpanded.add(k);renderSubjects();}else if(t==='subtopic'){const subjectName=getMode().subjects[action.dataset.subject]?.name;if(['Angielski','Niemiecki','Francuski'].includes(subjectName))window.LanguageLab.open(subjectName,action.dataset.subtopic);else{const context=findSubjectTopic(action.dataset.subject,action.dataset.topic,action.dataset.subtopic);if(context)openLesson(context);}}else if(t==='search-result'){const subjectName=getMode().subjects[action.dataset.subject]?.name;if(['Angielski','Niemiecki','Francuski'].includes(subjectName))window.LanguageLab.open(subjectName,action.dataset.subtopic);else{const context=findSubjectTopic(action.dataset.subject,action.dataset.topic,action.dataset.subtopic);if(context)openLesson(context);}$('suggestions').classList.add('hidden');}else if(t==='ai-search'){openAI(action.dataset.query);$('suggestions').classList.add('hidden');}else if(t==='difficulty'){state.level=action.dataset.level;const context=findSubjectTopic(state.subject,state.topic,state.subtopic);if(context)openLesson(context);}else if(t==='close')$('detailPanel').classList.add('hidden');else if(t==='answer'){const selected=action.dataset.answer;const quiz=window.QuizEngine.getCurrent();const correct=selected===quiz.answer;document.querySelectorAll('[data-action="answer"]').forEach(b=>{b.disabled=true;if(b.dataset.answer===quiz.answer)b.classList.add('correct');});if(!correct)action.classList.add('incorrect');$('quizCard').insertAdjacentHTML('beforeend',`<div class="quiz-explanation"><strong>${correct?'Poprawna odpowiedź!':'Niepoprawna odpowiedź.'}</strong> ${escapeHtml(quiz.explanation)}</div>`);}return;}
+    if(t==='subject'){const k=action.dataset.key;state.subjectsExpanded.has(k)?state.subjectsExpanded.delete(k):state.subjectsExpanded.add(k);renderSubjects();}else if(t==='topic'){const k=action.dataset.key;state.topicsExpanded.has(k)?state.topicsExpanded.delete(k):state.topicsExpanded.add(k);renderSubjects();}else if(t==='subtopic'){const subjectName=getMode().subjects[action.dataset.subject]?.name;if(['Angielski','Niemiecki','Francuski'].includes(subjectName))window.LanguageLab.open(subjectName,action.dataset.subtopic);else{const context=findSubjectTopic(action.dataset.subject,action.dataset.topic,action.dataset.subtopic);if(context)openLesson(context);}}else if(t==='search-result'){const subjectName=getMode().subjects[action.dataset.subject]?.name;if(['Angielski','Niemiecki','Francuski'].includes(subjectName))window.LanguageLab.open(subjectName,action.dataset.subtopic);else{const context=findSubjectTopic(action.dataset.subject,action.dataset.topic,action.dataset.subtopic);if(context)openLesson(context);}$('suggestions').classList.add('hidden');}else if(t==='ai-search'){openAI(action.dataset.query);$('suggestions').classList.add('hidden');}else if(t==='difficulty'){state.level=action.dataset.level;const context=findSubjectTopic(state.subject,state.topic,state.subtopic);if(context)openLesson(context);}else if(t==='close')$('detailPanel').classList.add('hidden');else if(t==='answer'){const selected=action.dataset.answer;const quiz=window.QuizEngine.getCurrent();const correct=selected===quiz.answer;document.querySelectorAll('[data-action="answer"]').forEach(b=>{b.disabled=true;if(b.dataset.answer===quiz.answer)b.classList.add('correct');});if(!correct)action.classList.add('incorrect');$('quizCard').insertAdjacentHTML('beforeend',`<div class="quiz-explanation notation-host" data-quiz-explanation><strong>${correct?'Poprawna odpowiedź!':'Niepoprawna odpowiedź.'}</strong> ${escapeHtml(quiz.explanation)}</div>`);const host=$('quizCard').querySelector('[data-quiz-explanation]:last-child');if(host&&window.NotationService)window.NotationService.renderInto(host,`${correct?'Poprawna odpowiedź!':'Niepoprawna odpowiedź.'} ${quiz.explanation}`);}return;}
   if(e.target.closest('#generateQuizInline'))generateAndRenderQuiz();
-  const mode=e.target.closest('[data-mode]');if(mode){state.mode=mode.dataset.mode;state.subjectsExpanded.clear();state.topicsExpanded.clear();state.subject=null;state.topic=null;state.subtopic=null;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b===mode));renderSubjects();renderStats();}
+  const mode=e.target.closest('[data-mode]');if(mode){state.mode=mode.dataset.mode;state.subjectsExpanded.clear();state.topicsExpanded.clear();state.subject=null;state.topic=null;state.subtopic=null;$('subjectFilter').value='all';$('levelFilter').value='all';document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b===mode));renderSubjects();renderStats();}
   if(!e.target.closest('.search-box'))$('suggestions').classList.add('hidden');
 });
 
@@ -275,6 +330,13 @@ async function initializeApp(){
     return;
   }
   renderSubjects();renderStats();updateApiBanner();
+}
+
+window.AppShell?.init();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
 }
 
 initializeApp();
