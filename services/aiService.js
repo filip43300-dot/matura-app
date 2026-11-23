@@ -10,12 +10,16 @@ window.AIService = (() => {
   function cacheKey(prefix, parts) { return `matura:${prefix}:${parts.join('|').toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/gi,'-')}`; }
 
   async function generateLesson(context) {
-    const key = cacheKey('lesson',[context.subject,context.topic,context.subtopic,context.level]);
+    const key = cacheKey('lesson-v2',[context.subject,context.topic,context.subtopic,context.level]);
     const cached = localStorage.getItem(key);
     if (cached) return JSON.parse(cached);
-    const prompt = `Jesteś polskim ekspertem EdTech i przygotowujesz kompedium. Wygeneruj WYŁĄCZNIE poprawny JSON po polsku dla lekcji. Klucz: title, definition, explanation, formulas, visualDescription, example, answer, explanationOfAnswer, summary, coreConcepts. ` +
+    const prompt = `Jesteś polskim ekspertem EdTech i przygotowujesz kompendium. Wygeneruj WYŁĄCZNIE poprawny JSON po polsku dla lekcji. Klucze: title, definition, explanation, formulas, visualDescription, example, answer, explanationOfAnswer, summary, coreConcepts, clinicalTip, warning, mermaid, chartjs, svg. ` +
       `Kontekst: przedmiot=${context.subject}; dział=${context.topic}; podtemat=${context.subtopic}; poziom=${context.level}. ` +
-      `Wymagania: textbook-grade, ściśle odpowiadaj tylko na ten podtemat, wzory w składni KaTeX, korelacje kliniczne dla medycyny, podaj 3-5 kluczowych definicji i rozwiązane zadanie z pełnym uzasadnieniem.`;
+      `Wymagania: textbook-grade, ściśle odpowiadaj tylko na ten podtemat, oznaczaj kluczowe pojęcia znacznikami **pogrubienia**, wzory zapisuj w składni KaTeX, podaj 3-5 kluczowych definicji i rozwiązane zadanie z pełnym uzasadnieniem. ` +
+      `Jeśli temat obejmuje proces biologiczny, fizjologiczny, kliniczny algorytm lub mapę pojęć, wpisz w mermaid poprawny kod Mermaid flowchart; w innym przypadku mermaid ma być pustym tekstem. ` +
+      `Jeśli temat dotyczy funkcji, geometrii, zjawiska fizycznego lub krzywej medycznej, wpisz w chartjs konfigurację JSON Chart.js z type, data i options; w innym przypadku chartjs ma być null. ` +
+      `Jeśli anatomia lub geometria skorzysta na schemacie, podaj prosty, samodzielny inline SVG w polu svg; nigdy nie umieszczaj skryptów, obcych zasobów ani HTML. ` +
+      `Uzupełnij clinicalTip korelacją kliniczną albo wskazówką maturalną, a warning częstym błędem lub pustym tekstem.`;
     const text = await request(prompt);
     let lesson;
     try { lesson = JSON.parse(text.replace(/```json|```/g,'').trim()); } catch { lesson = {title:context.subtopic,definition:text,explanation:'',formulas:[],visualDescription:'Schemat zależności tematu',example:'',answer:'',explanationOfAnswer:'',summary:'',coreConcepts:[context.subtopic]}; }

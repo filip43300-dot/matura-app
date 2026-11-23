@@ -9,67 +9,62 @@ window.GroqClient = (() => {
   const FALLBACK_MODEL = 'llama-3.1-8b-instant';
   let resolvedApiKey = null;
   let resolvedModelPromise = null;
+  let availableModelsApiKey = null;
+  let availableModelsPromise = null;
 
   function getActiveGroqModel(apiKey) {
     if (resolvedApiKey === apiKey && resolvedModelPromise) return resolvedModelPromise;
     resolvedApiKey = apiKey;
-    resolvedModelPromise = resolveActiveGroqModel(apiKey);
+    resolvedModelPromise = getAvailableModels(apiKey).then(models => {
+      const availableIds = models.map(model => model.id).filter(id => !/whisper|guard/i.test(id));
+      const model = PREFERRED_MODELS.find(id => availableIds.includes(id)) || availableIds[0] || FALLBACK_MODEL;
+      localStorage.setItem('groq_active_model', model);
+      return model;
+    }).catch(() => {
+      localStorage.setItem('groq_active_model', FALLBACK_MODEL);
+      return FALLBACK_MODEL;
+    });
     return resolvedModelPromise;
   }
 
-  async function resolveActiveGroqModel(apiKey) {
-    let models;
-    try {
-      const response = await fetch(MODELS_ENDPOINT, {
+  function getAvailableModels(apiKey) {
+    if (!availableModelsPromise || availableModelsApiKey !== apiKey) {
+      availableModelsApiKey = apiKey;
+      availableModelsPromise = fetch(MODELS_ENDPOINT, {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${apiKey}` }
-      });
-      if (!response.ok) return cacheModel(FALLBACK_MODEL);
-      models = await response.json();
-    } catch {
-      return cacheModel(FALLBACK_MODEL);
+      }).then(response => {
+        if (!response.ok) throw new Error(`Groq models request failed (${response.status})`);
+        return response.json();
+      }).then(result => Array.isArray(result?.data)
+        ? result.data.filter(model => typeof model?.id === 'string')
+        : []);
     }
-
-    const availableModels = Array.isArray(models?.data)
-      ? models.data
-        .map(model => model?.id)
-        .filter(id => typeof id === 'string' && !/whisper|guard/i.test(id))
-      : [];
-    const model = PREFERRED_MODELS.find(id => availableModels.includes(id))
-      || availableModels[0]
-      || FALLBACK_MODEL;
-    return cacheModel(model);
+    return availableModelsPromise;
   }
 
-  function cacheModel(model) {
-    localStorage.setItem('groq_active_model', model);
-    return model;
+  function getActiveVisionModel(apiKey) {
+    return getAvailableModels(apiKey).then(models => {
+      const visionModels = models
+        .map(model => model.id)
+        .filter(id => /vision|scout/i.test(id) && !/whisper|guard/i.test(id));
+      const preferred = 'meta-llama/llama-4-scout-17b-16e-instruct';
+      const model = visionModels.includes(preferred) ? preferred : visionModels[0];
+      if (!model) throw new Error('Nie znaleziono aktywnego modelu Groq obsługującego obrazy.');
+      localStorage.setItem('groq_active_vision_model', model);
+      return model;
+    }).catch(error => {
+      throw new Error(`Nie udało się wykryć modelu Groq do analizy obrazów: ${error.message}`);
+    });
   }
 
-  async function getErrorMessage(response) {
-    const text = await response.text();
-    try {
-      const message = JSON.parse(text).error?.message;
-      if (typeof message === 'string' && message) return message;
-    } catch {}
-    return text || response.statusText || 'Unknown error';
-  }
-
-  async function complete(prompt, options) {
-    const key = localStorage.getItem('groq_api_key') || '';
-    if (!key) throw new Error('Brak klucza Groq AI. Kliknij „⚙️ Klucz API” i wklej klucz zaczynający się od gsk_.');
-
-    const model = await getActiveGroqModel(key);
+  async function postChat(apiKey, model, messages, options) {
     let response;
     try {
       response = await fetch(ENDPOINT, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model,
-          messages: [{ role: 'user', content: prompt }],
-          ...options
-        })
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, messages, ...options })
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -85,5 +80,38 @@ window.GroqClient = (() => {
     return data.choices?.[0]?.message?.content || '';
   }
 
-  return { complete, getActiveGroqModel };
+  function requireKey() {
+    const key = localStorage.getItem('groq_api_key') || '';
+    if (!key) throw new Error('Brak klucza Groq AI. Kliknij „⚙️ Klucz API” i wklej klucz zaczynający się od gsk_.');
+    return key;
+  }
+
+  async function complete(prompt, options = {}) {
+    const key = requireKey();
+    const model = await getActiveGroqModel(key);
+    return postChat(key, model, [{ role: 'user', content: prompt }], options);
+  }
+
+  async function completeVision(prompt, imageDataUrl, options = {}) {
+    const key = requireKey();
+    const model = await getActiveVisionModel(key);
+    return postChat(key, model, [{
+      role: 'user',
+      content: [
+        { type: 'text', text: prompt },
+        { type: 'image_url', image_url: { url: imageDataUrl } }
+      ]
+    }], options);
+  }
+
+  async function getErrorMessage(response) {
+    const text = await response.text();
+    try {
+      const message = JSON.parse(text).error?.message;
+      if (typeof message === 'string' && message) return message;
+    } catch {}
+    return text || response.statusText || 'Unknown error';
+  }
+
+  return { complete, completeVision, getActiveGroqModel, getActiveVisionModel };
 })();

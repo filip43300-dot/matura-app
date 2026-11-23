@@ -120,7 +120,252 @@ window.CURRICULUM = {
       {title:'Metabolizm energetyczny',level:'studia',subtopics:['Glikoliza','Cykl Krebsa','Łańcuch oddechowy','Fosforylacja oksydacyjna','Glikogenoliza','Glikogenogeneza','Glukoneogeneza','Beta-oksydacja','Ketogeneza','Synteza tłuszczów','Cykl mocznika','Reakcje anaplerotyczne','Kontrola hormonalna','Integracja metaboliczna','Metabolizm aminokwasów']},
       {title:'Kwasy nukleinowe i lipidy',level:'studia',subtopics:['Struktura DNA','Replikacja DNA','Naprawa DNA','Transkrypcja','Splicing','Translacja','Kod genetyczny','Epigenetyka','Regulacja ekspresji','MiRNA','Kwasy tłuszczowe','Triacyloglicerole','Fosfolipidy','Cholesterol','Lipoproteiny']}
     ]}
-  }
+  }}
 };
 
 window.CURRICULUM_PRIORITIES = ['Studia Medyczne','Matematyka','Chemia','Języki obce','Biologia','Fizyka','Język Polski','Geografia','Historia'];
+
+(() => {
+  const liceum = window.CURRICULUM.liceum.subjects;
+  const addTopics = (subject, topics) => {
+    const existing = new Set(subject.topics.map(topic => topic.title.toLocaleLowerCase()));
+    subject.topics.push(...topics.filter(topic => !existing.has(topic.title.toLocaleLowerCase())));
+  };
+
+  addTopics(liceum.mathematics, [
+    {title:'Kombinatoryka i rachunek prawdopodobieństwa CKE',level:'rozszerzony',subtopics:['Reguła mnożenia i dodawania','Permutacje bez powtórzeń','Permutacje z powtórzeniami','Wariacje bez powtórzeń','Wariacje z powtórzeniami','Kombinacje','Symbol Newtona','Trójkąt Pascala','Doświadczenie losowe i zdarzenie','Prawdopodobieństwo klasyczne','Zdarzenia przeciwne','Suma i iloczyn zdarzeń','Prawdopodobieństwo warunkowe','Drzewa prawdopodobieństwa','Zadania z losowaniem bez zwracania','Interpretacja danych statystycznych']},
+    {title:'Dowodzenie i optymalizacja maturalna',level:'rozszerzony',subtopics:['Dowody algebraiczne','Dowody geometryczne','Podzielność i reszty','Nierówności klasyczne','Optymalizacja funkcji kwadratowej','Optymalizacja z parametrem','Modelowanie zależności','Odczyt warunków zadania tekstowego','Weryfikacja dziedziny','Uzasadnianie kolejnych kroków','Ocena sensowności wyniku','Strategie zadań otwartych CKE']}
+  ]);
+  addTopics(liceum.chemistry, [
+    {title:'Redoks i elektrochemia maturalna',level:'rozszerzony',subtopics:['Stopnie utlenienia w jonach i cząsteczkach','Bilans elektronowy','Utleniacz i reduktor','Bilansowanie równań redoks','Ogniwo galwaniczne','Schemat ogniwa','Anoda i katoda','Potencjały standardowe','Siła elektromotoryczna ogniwa','Szereg elektrochemiczny metali','Elektroliza roztworów wodnych','Elektroliza soli stopionych','Prawa Faradaya','Korozja i ochrona metali','Akumulatory i ogniwa paliwowe']},
+    {title:'Doświadczenia, obliczenia i analiza danych CKE',level:'rozszerzony',subtopics:['Planowanie doświadczenia chemicznego','Problem badawczy i hipoteza','Próba kontrolna i badawcza','Obserwacje a wnioski','Identyfikacja jonów','Dobór odczynników','BHP w laboratorium','Miareczkowanie i punkt równoważnikowy','Obliczenia z wydajnością reakcji','Mieszaniny i nadmiar reagentu','Interpretacja wykresu kinetycznego','Analiza tabel i schematów','Błąd pomiarowy i cyfry znaczące','Przewidywanie produktów reakcji']}
+  ]);
+  addTopics(liceum.biology, [
+    {title:'Rośliny, grzyby i różnorodność organizmów',level:'rozszerzony',subtopics:['Tkanki twórcze i stałe roślin','Korzeń, łodyga i liść','Gospodarka wodna roślin','Transport ksylemem i floemem','Regulacja aparatów szparkowych','Fitohormony i tropizmy','Przemiana pokoleń roślin','Mchy, paprotniki i rośliny nasienne','Kwiat, zapylenie i podwójne zapłodnienie','Owoce i rozsiewanie','Budowa i odżywianie grzybów','Porosty i mikoryza','Przegląd grup zwierząt','Przystosowania do środowiska','Rozmnażanie i rozwój zwierząt']},
+    {title:'Doświadczenia i analiza danych biologicznych CKE',level:'rozszerzony',subtopics:['Problem badawczy, hipoteza i próba kontrolna','Zmienne zależne i niezależne','Projektowanie doświadczenia','Interpretacja tabel i wykresów','Wnioskowanie z wyników','Analiza preparatów i mikrofotografii','Obliczenia genetyczne','Analiza rodowodów','Drzewa filogenetyczne','Doświadczenia enzymatyczne','Wykrywanie związków organicznych','Wnioskowanie o mechanizmie homeostazy','Rzetelność i powtarzalność badań','Formułowanie odpowiedzi zgodnej z poleceniem']}
+  ]);
+  addTopics(liceum.physics, [
+    {title:'Drgania, fale i akustyka',level:'rozszerzony',subtopics:['Ruch harmoniczny prosty','Okres i częstotliwość drgań','Wahadło matematyczne','Oscylator sprężynowy','Energia drgań','Fala mechaniczna','Długość i prędkość fali','Interferencja i dyfrakcja','Fale stojące','Rezonans','Fale dźwiękowe','Natężenie i poziom dźwięku','Efekt Dopplera','Analiza wykresów falowych']},
+    {title:'Optyka geometryczna i falowa CKE',level:'rozszerzony',subtopics:['Odbicie i załamanie światła','Prawo Snelliusa','Całkowite wewnętrzne odbicie','Zwierciadła płaskie i kuliste','Konstrukcja obrazów','Soczewki cienkie','Równanie soczewki','Wady wzroku i korekcja','Układ optyczny oka','Interferencja światła','Dyfrakcja i siatka dyfrakcyjna','Polaryzacja','Widmo elektromagnetyczne','Zadania obliczeniowe z optyki']},
+    {title:'Fizyka atomowa, jądrowa i astronomia',level:'rozszerzony',subtopics:['Kwant energii i foton','Zjawisko fotoelektryczne','Widma emisyjne i absorpcyjne','Model atomu wodoru','Energia wiązania jądra','Defekt masy','Rozpad promieniotwórczy','Prawo rozpadu i okres półtrwania','Reakcje rozszczepienia i syntezy','Ochrona radiologiczna','Ewolucja gwiazd','Układ Słoneczny i grawitacja','Metody obserwacji astronomicznych','Zastosowania izotopów']}
+  ]);
+  addTopics(liceum.geography, [
+    {title:'Geografia społeczno-ekonomiczna i środowiskowa CKE',level:'rozszerzony',subtopics:['Struktura zatrudnienia i bezrobocie','Wskaźniki rozwoju społecznego','Dysproporcje regionalne','Globalne łańcuchy produkcji','Handel międzynarodowy','Bezpieczeństwo żywnościowe','Energetyka konwencjonalna i odnawialna','Konflikty o zasoby','Degradacja gleb i pustynnienie','Obieg wody i zagrożenia powodziowe','Urbanizacja i procesy suburbanizacji','Planowanie przestrzenne','Zmiany klimatu i adaptacja','Ochrona przyrody w Polsce i na świecie','Analiza map tematycznych i danych statystycznych']}
+  ]);
+  addTopics(liceum.history, [
+    {title:'Historia Polski — chronologia i procesy',level:'rozszerzony',subtopics:['Rozbicie dzielnicowe i zjednoczenie Królestwa','Polska Jagiellonów','Demokracja szlachecka i unia lubelska','Rzeczpospolita Obojga Narodów','Potop szwedzki i kryzys państwa','Reformy oświeceniowe i Sejm Wielki','Powstania narodowe XIX wieku','Polacy wobec zaborców','Odzyskanie niepodległości w 1918 roku','II Rzeczpospolita i jej ustrój','Kampania polska 1939 roku','Polskie Państwo Podziemne','Polska w systemie komunistycznym','Przemiany 1956, 1968, 1970 i 1976','Opozycja demokratyczna i Solidarność','Transformacja ustrojowa i integracja europejska']},
+    {title:'Praca ze źródłem i mapa historyczna CKE',level:'rozszerzony',subtopics:['Krytyka źródła i określenie jego autora','Rozpoznawanie propagandy','Datowanie źródeł i chronologia','Analiza mapy politycznej','Analiza mapy wojskowej','Porównywanie przekazów źródłowych','Rozróżnianie przyczyn i skutków','Ciągłość i zmiana historyczna','Formułowanie argumentu','Weryfikacja tezy na podstawie źródeł']}
+  ]);
+
+  const polishReading = liceum.polish.topics.find(topic => topic.title.toLocaleLowerCase().includes('lektur'));
+  if (polishReading) {
+    polishReading.subtopics = [...new Set([...polishReading.subtopics,
+      'Antygona — Sofokles','Makbet — William Szekspir','Romeo i Julia — William Szekspir','Skąpiec — Molier','Zemsta — Aleksander Fredro','Dziady część III — Adam Mickiewicz','Pan Tadeusz — Adam Mickiewicz','Lalka — Bolesław Prus','Potop — Henryk Sienkiewicz','Chłopi — Władysław Reymont','Wesele — Stanisław Wyspiański','Przedwiośnie — Stefan Żeromski','Ferdydurke — Witold Gombrowicz','Inny świat — Gustaw Herling-Grudziński','Zdążyć przed Panem Bogiem — Hanna Krall','Dżuma — Albert Camus','Rok 1984 — George Orwell','Tango — Sławomir Mrożek','Medaliony — Zofia Nałkowska','Konteksty literackie i kulturowe do lektur obowiązkowych'
+    ])];
+  }
+
+  const medical = window.CURRICULUM.medical.subjects;
+  const preclinical = 'Lata przedkliniczne (Rok 1–2)';
+  const clinical = 'Lata kliniczne (Rok 3–5)';
+  ['anatomy','physiology','biochemistry','histology','pathology','pharmacology','microbiology'].forEach(key => {
+    if (medical[key]) medical[key].yearGroup = preclinical;
+  });
+  if (medical.internal) medical.internal.yearGroup = clinical;
+
+  Object.assign(medical, {
+    histology:{name:'Histologia',icon:'🔬',yearGroup:preclinical,topics:[
+      {title:'Tkanki podstawowe',level:'studia',subtopics:['Nabłonek jednowarstwowy i wielowarstwowy','Gruczoły i wydzielanie','Tkanka łączna właściwa','Tkanka tłuszczowa','Chrząstka','Tkanka kostna','Mięśnie gładkie, szkieletowe i sercowe','Tkanka nerwowa','Krew i hematopoeza','Barwienia histologiczne']},
+      {title:'Histologia narządów',level:'studia',subtopics:['Skóra i przydatki','Układ limfatyczny','Przewód pokarmowy','Wątroba i trzustka','Układ oddechowy','Nerka i drogi moczowe','Gruczoły dokrewne','Narządy rozrodcze','Serce i naczynia','Mikroskopia i rozpoznawanie preparatów']}
+    ]},
+    pathology:{name:'Patomorfologia',icon:'🧫',yearGroup:preclinical,topics:[
+      {title:'Uszkodzenie komórki i zapalenie',level:'studia',subtopics:['Adaptacje komórkowe','Uszkodzenie odwracalne i nieodwracalne','Martwica i jej typy','Apoptoza','Autofagia','Zapalenie ostre','Zapalenie przewlekłe','Mediatory zapalenia','Gojenie i regeneracja','Zaburzenia krążenia i wstrząs']},
+      {title:'Nowotwory i patologia narządowa',level:'studia',subtopics:['Onkogeny i geny supresorowe','Inwazja i przerzuty','Stopień złośliwości i zaawansowanie','Nowotwory nabłonkowe','Nowotwory mezenchymalne','Patologia układu krążenia','Patologia płuc','Patologia przewodu pokarmowego','Patologia nerek','Biopsja i ocena histopatologiczna']}
+    ]},
+    pharmacology:{name:'Farmakologia i Toksykologia',icon:'💊',yearGroup:preclinical,topics:[
+      {title:'Farmakokinetyka i farmakodynamika',level:'studia',subtopics:['Wchłanianie i biodostępność','Dystrybucja i objętość dystrybucji','Metabolizm leków i CYP450','Eliminacja i klirens','Okres półtrwania i stan stacjonarny','Agonista i antagonista','Krzywa dawka-odpowiedź','Indeks terapeutyczny','Tolerancja i tachyfilaksja','Interakcje lekowe']},
+      {title:'Farmakologia układów',level:'studia',subtopics:['Leki układu autonomicznego','Leki układu krążenia','Leki przeciwkrzepliwe i przeciwpłytkowe','Leki przeciwcukrzycowe','Leki układu oddechowego','Leki przeciwbólowe i opioidy','Antybiotyki i leki przeciwwirusowe','Leki przeciwpadaczkowe','Leki psychotropowe','Leki hormonalne']},
+      {title:'Toksykologia kliniczna',level:'studia',subtopics:['Toksykokinetyka','Zespoły toksydromowe','Zatrucie paracetamolem','Zatrucie opioidami','Alkohole toksyczne','Zatrucia wziewne','Dekontaminacja','Odtrutki','Leczenie podtrzymujące','Profilaktyka błędów lekowych']}
+    ]},
+    microbiology:{name:'Mikrobiologia',icon:'🦠',yearGroup:preclinical,topics:[
+      {title:'Bakteriologia i diagnostyka',level:'studia',subtopics:['Budowa bakterii','Barwienie Grama','Tlenowce i beztlenowce','Toksyny bakteryjne','Posiew i hodowla','Antybiogram','Mechanizmy oporności','Zakażenia szpitalne','Biofilm','Racjonalna antybiotykoterapia']},
+      {title:'Wirusologia, mykologia i parazytologia',level:'studia',subtopics:['Budowa i replikacja wirusów','Wirusy DNA i RNA','HIV','Wirusowe zapalenia wątroby','Wirusy oddechowe','Grzyby drożdżopodobne i pleśniowe','Dermatofity','Pierwotniaki chorobotwórcze','Robaki pasożytnicze','Diagnostyka molekularna i serologiczna']}
+    ]},
+    internal:{name:'Choroby wewnętrzne',icon:'🩺',yearGroup:clinical,topics:[
+      {title:'Kardiologia',level:'studia',subtopics:['Nadciśnienie tętnicze','Choroba wieńcowa','Ostry zespół wieńcowy i zawał','Niewydolność serca','Zaburzenia rytmu','Wady zastawkowe','Zapalenie wsierdzia','EKG i biomarkery sercowe']},
+      {title:'Pulmonologia',level:'studia',subtopics:['Astma','POChP','Zapalenie płuc','Zatorowość płucna','Choroby śródmiąższowe','Niewydolność oddechowa','Spirometria','Diagnostyka obrazowa klatki piersiowej']},
+      {title:'Gastroenterologia i hepatologia',level:'studia',subtopics:['Choroba refluksowa','Choroba wrzodowa','Krwawienie z przewodu pokarmowego','Choroby zapalne jelit','Marskość wątroby','Wirusowe zapalenia wątroby','Ostre zapalenie trzustki','Badania endoskopowe']},
+      {title:'Nefrologia',level:'studia',subtopics:['Ostre uszkodzenie nerek','Przewlekła choroba nerek','Zespół nerczycowy i nefrytyczny','Zaburzenia sodu i potasu','Kwasica i zasadowica','Kamica nerkowa','Dializoterapia','Badanie moczu']},
+      {title:'Endokrynologia i diabetologia',level:'studia',subtopics:['Cukrzyca typu 1 i 2','Kwasica ketonowa','Hipoglikemia','Choroby tarczycy','Choroby nadnerczy','Choroby przysadki','Otyłość i zespół metaboliczny','Powikłania cukrzycy']},
+      {title:'Hematologia',level:'studia',subtopics:['Niedokrwistości','Małopłytkowość','Skazy krwotoczne','Zakrzepica','Białaczki','Chłoniaki','Szpiczak','Transfuzjologia']},
+      {title:'Reumatologia',level:'studia',subtopics:['Reumatoidalne zapalenie stawów','Toczeń rumieniowaty układowy','Spondyloartropatie','Zapalenia naczyń','Dna moczanowa','Choroba zwyrodnieniowa stawów','Osteoporoza','Diagnostyka autoimmunologiczna']}
+    ]},
+    embryology:{name:'Embriologia',icon:'🧬',yearGroup:preclinical,topics:[
+      {title:'Gamety, zapłodnienie i implantacja',level:'studia',subtopics:['Mejoza i dojrzewanie gamet','Transport gamet','Kapacytacja plemnika','Reakcja akrosomalna','Zapłodnienie i blok polispermii','Bruzdkowanie i morula','Blastocysta','Implantacja','Wczesne różnicowanie trofoblastu','Błony płodowe']},
+      {title:'Gastrulacja i rozwój zarodkowy',level:'studia',subtopics:['Smuga pierwotna','Ektoderma, mezoderma i endoderma','Neurulacja','Grzebień nerwowy','Somitogeneza','Rozwój osi ciała','Fałdowanie zarodka','Organogeneza','Rozwój łożyska','Wady rozwojowe i teratogeneza']}
+    ]},
+    biophysics:{name:'Biofizyka',icon:'⚛️',yearGroup:preclinical,topics:[
+      {title:'Biofizyka komórki i błon',level:'studia',subtopics:['Termodynamika układów biologicznych','Dyfuzja i osmoza','Potencjał błonowy','Transport przez błony','Właściwości mechaniczne tkanek','Napięcie powierzchniowe','Reologia krwi','Biopolimery i oddziaływania molekularne']},
+      {title:'Fizyka diagnostyki i terapii',level:'studia',subtopics:['Promieniowanie jonizujące','Oddziaływanie promieniowania z tkanką','Dozymetria','Ultradźwięki i efekt Dopplera','Rezonans magnetyczny','Tomografia komputerowa','Optyka i mikroskopia','Lasery w medycynie','Bioelektryczność i elektrokardiografia','Bezpieczeństwo ekspozycji']}
+    ]},
+    immunology:{name:'Immunologia',icon:'🛡️',yearGroup:preclinical,topics:[
+      {title:'Odporność wrodzona i zapalenie',level:'studia',subtopics:['Bariery anatomiczne i chemiczne','Rozpoznawanie PAMP i DAMP','Receptory Toll-podobne','Dopełniacz','Neutrofile i makrofagi','Komórki NK','Cytokiny i chemokiny','Ostra faza zapalenia','Prezentacja antygenu','Reakcje przeciwwirusowe']},
+      {title:'Odporność nabyta i tolerancja',level:'studia',subtopics:['Dojrzewanie limfocytów T','Subpopulacje limfocytów T','Limfocyty B i ośrodki rozmnażania','Klasy przeciwciał','Przełączanie klas i powinowactwo','MHC I i MHC II','Tolerancja centralna i obwodowa','Pamięć immunologiczna','Szczepienia','Niedobory odporności']},
+      {title:'Nadwrażliwość i autoimmunizacja',level:'studia',subtopics:['Reakcje nadwrażliwości typu I–IV','Anafilaksja','Alergie','Choroby autoimmunizacyjne','Immunologia transplantacyjna','Odrzucanie przeszczepu','Immunoterapia nowotworów','Przeciwciała monoklonalne']}
+    ]},
+    clinicalGenetics:{name:'Genetyka kliniczna',icon:'🧬',yearGroup:preclinical,topics:[
+      {title:'Genetyka człowieka i diagnostyka',level:'studia',subtopics:['Dziedziczenie autosomalne dominujące','Dziedziczenie autosomalne recesywne','Dziedziczenie sprzężone z chromosomem X','Dziedziczenie mitochondrialne','Rodowód i ryzyko powtórzenia','Aberracje chromosomowe','Kariotypowanie','FISH i mikromacierze','Sekwencjonowanie panelowe i eksomowe','Warianty patogenne i VUS']},
+      {title:'Poradnictwo i choroby genetyczne',level:'studia',subtopics:['Badania przesiewowe noworodków','Diagnostyka prenatalna','NIPT i biopsja kosmówki','Choroby jednogenowe','Choroby wieloczynnikowe','Farmakogenomika','Penetracja i ekspresywność','Poradnictwo genetyczne','Zgoda i etyka badań genetycznych']}
+    ]},
+    pathophysiology:{name:'Patofizjologia',icon:'🩺',yearGroup:preclinical,topics:[
+      {title:'Mechanizmy choroby i odpowiedź ustroju',level:'studia',subtopics:['Homeostaza i allostaza','Adaptacja komórkowa','Uszkodzenie i śmierć komórki','Stres oksydacyjny','Zapalenie i mediatory','Gorączka i odpowiedź ostrej fazy','Wstrząs i niewydolność narządowa','Niedotlenienie i niedokrwienie','Zaburzenia równowagi kwasowo-zasadowej','Zaburzenia wodno-elektrolitowe']},
+      {title:'Patofizjologia układów',level:'studia',subtopics:['Niewydolność krążenia','Niewydolność oddechowa','Zaburzenia filtracji nerkowej','Zaburzenia hormonalne','Zaburzenia hemostazy','Niedokrwistość i hemoliza','Patofizjologia przewodu pokarmowego','Ból i przewodzenie nocyceptywne','Obrzęk i zaburzenia mikrokrążenia','Mechanizmy kancerogenezy']}
+    ]},
+    toxicology:{name:'Toksykologia',icon:'☣️',yearGroup:preclinical,topics:[
+      {title:'Toksykokinetyka i mechanizmy toksyczności',level:'studia',subtopics:['Drogi narażenia','Wchłanianie i dystrybucja toksyn','Biotransformacja i bioaktywacja','Eliminacja i okres półtrwania','Dawka i zależność dawka-odpowiedź','Stres oksydacyjny','Toksyczność narządowa','Interakcje toksyczne','Biomarkery narażenia','Ocena ryzyka']},
+      {title:'Zatrucia i postępowanie',level:'studia',subtopics:['Rozpoznanie zespołów toksydromowych','Dekontaminacja','Węgiel aktywowany','Odtrutki swoiste','Zatrucie paracetamolem','Zatrucie alkoholem i glikolami','Zatrucie opioidami','Zatrucie pestycydami','Zatrucia wziewne','Zgłoszenie do ośrodka toksykologicznego']}
+    ]},
+    cardiology:{name:'Kardiologia',icon:'❤️',yearGroup:clinical,topics:[
+      {title:'Choroba wieńcowa i niewydolność serca',level:'studia',subtopics:['Ostry zespół wieńcowy','Zawał mięśnia sercowego','EKG w niedokrwieniu','Troponiny i diagnostyka','Choroba wieńcowa przewlekła','Niewydolność serca z obniżoną frakcją','Niewydolność serca z zachowaną frakcją','Wstrząs kardiogenny','Kardiomiopatie','Rehabilitacja i profilaktyka wtórna']},
+      {title:'Nadciśnienie, rytm i zastawki',level:'studia',subtopics:['Nadciśnienie tętnicze','Przełom nadciśnieniowy','Migotanie przedsionków','Tachyarytmie nadkomorowe','Tachyarytmie komorowe','Bradyarytmie i bloki','Wady zastawkowe','Zapalenie wsierdzia','Zapalenie osierdzia','Leczenie przeciwkrzepliwe']}
+    ]},
+    pulmonology:{name:'Pulmonologia',icon:'🫁',yearGroup:clinical,topics:[
+      {title:'Choroby obturacyjne i śródmiąższowe',level:'studia',subtopics:['Astma i zaostrzenie astmy','POChP','Spirometria i próby rozkurczowe','Choroby śródmiąższowe płuc','Rozstrzenie oskrzeli','Mukowiscydoza','Niewydolność oddechowa','Tlenoterapia','Wentylacja nieinwazyjna','Rehabilitacja oddechowa']},
+      {title:'Zakażenia i choroby opłucnej',level:'studia',subtopics:['Pozaszpitalne zapalenie płuc','Szpitalne zapalenie płuc','Gruźlica','Zatorowość płucna','Nadciśnienie płucne','Odma opłucnowa','Wysięk opłucnowy','Rak płuca','Diagnostyka obrazowa klatki piersiowej','Bronchoskopia']}
+    ]},
+    gastroenterology:{name:'Gastroenterologia',icon:'🩻',yearGroup:clinical,topics:[
+      {title:'Przewód pokarmowy',level:'studia',subtopics:['Refluks żołądkowo-przełykowy','Choroba wrzodowa','Krwawienie z przewodu pokarmowego','Celiakia','Choroba Crohna','Wrzodziejące zapalenie jelita grubego','Zespół jelita drażliwego','Niedrożność jelit','Rak jelita grubego','Endoskopia i biopsja']},
+      {title:'Wątroba, drogi żółciowe i trzustka',level:'studia',subtopics:['Interpretacja prób wątrobowych','Wirusowe zapalenia wątroby','Marskość i nadciśnienie wrotne','Encefalopatia wątrobowa','Wodobrzusze','Kamica żółciowa','Ostre zapalenie trzustki','Przewlekłe zapalenie trzustki','Rak wątrobowokomórkowy','Żywienie w chorobach przewodu pokarmowego']}
+    ]},
+    nephrology:{name:'Nefrologia',icon:'🫘',yearGroup:clinical,topics:[
+      {title:'Ostre i przewlekłe choroby nerek',level:'studia',subtopics:['Ostre uszkodzenie nerek','Przewlekła choroba nerek','Kłębuszkowe zapalenia nerek','Zespół nerczycowy','Zespół nefrytyczny','Cewkowo-śródmiąższowe choroby nerek','Nefropatia cukrzycowa','Dializoterapia','Przeszczepienie nerki','Badanie ogólne moczu']},
+      {title:'Elektrolity i równowaga kwasowo-zasadowa',level:'studia',subtopics:['Hiponatremia i hipernatremia','Hipokaliemia i hiperkaliemia','Zaburzenia wapnia i fosforanów','Kwasica metaboliczna','Zasadowica metaboliczna','Zaburzenia oddechowe pH','Kamica nerkowa','Nadciśnienie naczyniowo-nerkowe']}
+    ]},
+    endocrinology:{name:'Endokrynologia',icon:'🧪',yearGroup:clinical,topics:[
+      {title:'Cukrzyca i metabolizm',level:'studia',subtopics:['Rozpoznanie cukrzycy','Cukrzyca typu 1','Cukrzyca typu 2','Kwasica ketonowa','Stan hiperosmolarny','Hipoglikemia','Insulinoterapia','Leki przeciwcukrzycowe','Powikłania mikro- i makronaczyniowe','Otyłość i zespół metaboliczny']},
+      {title:'Tarczyca, nadnercza i przysadka',level:'studia',subtopics:['Niedoczynność tarczycy','Nadczynność tarczycy','Guzki i nowotwory tarczycy','Niedoczynność nadnerczy','Zespół Cushinga','Hiperaldosteronizm','Choroby przysadki','Moczówka prosta','Zaburzenia gospodarki wapniowo-fosforanowej','Osteoporoza']}
+    ]},
+    hematology:{name:'Hematologia',icon:'🩸',yearGroup:clinical,topics:[
+      {title:'Niedokrwistości i zaburzenia krwi',level:'studia',subtopics:['Morfologia krwi i rozmaz','Niedokrwistość z niedoboru żelaza','Niedokrwistość megaloblastyczna','Niedokrwistość hemolityczna','Niedokrwistość chorób przewlekłych','Niedokrwistość aplastyczna','Małopłytkowość','Skazy krwotoczne','Zakrzepica i trombofilia','Transfuzjologia i powikłania poprzetoczeniowe']},
+      {title:'Nowotwory układu krwiotwórczego',level:'studia',subtopics:['Ostre białaczki','Przewlekłe białaczki','Chłoniaki Hodgkina i nieziarnicze','Szpiczak plazmocytowy','Zespoły mielodysplastyczne','Nowotwory mieloproliferacyjne','Diagnostyka szpiku','Leczenie celowane i immunoterapia']}
+    ]},
+    rheumatology:{name:'Reumatologia',icon:'🦴',yearGroup:clinical,topics:[
+      {title:'Zapalenia stawów i układowe choroby tkanki łącznej',level:'studia',subtopics:['Reumatoidalne zapalenie stawów','Spondyloartropatie','Łuszczycowe zapalenie stawów','Toczeń rumieniowaty układowy','Twardzina układowa','Zapalenia mięśni','Zespół Sjögrena','Zapalenia naczyń','Diagnostyka ANA i przeciwciał swoistych','Leczenie immunosupresyjne']},
+      {title:'Choroby metaboliczne kości i stawów',level:'studia',subtopics:['Dna moczanowa','Choroba zwyrodnieniowa stawów','Osteoporoza','Osteomalacja','Ból kręgosłupa','Fibromialgia','Kapilaroskopia','Interpretacja badań zapalnych']}
+    ]},
+    pediatrics:{name:'Pediatria',icon:'👶',yearGroup:clinical,topics:[
+      {title:'Rozwój dziecka i neonatologia',level:'studia',subtopics:['Badanie noworodka','Wcześniactwo','Ocena rozwoju psychoruchowego','Siatki centylowe','Szczepienia ochronne','Żywienie niemowląt','Żółtaczka noworodków','Wady wrodzone','Stany nagłe u noworodka','Profilaktyka pediatryczna']},
+      {title:'Choroby wieku dziecięcego',level:'studia',subtopics:['Zakażenia układu oddechowego','Astma dziecięca','Biegunka i odwodnienie','Choroby wysypkowe','Drgawki gorączkowe','Cukrzyca typu 1 u dzieci','Wady serca','Niedokrwistości dziecięce','Ból brzucha u dziecka','Ochrona dziecka i komunikacja z opiekunem']}
+    ]},
+    surgery:{name:'Chirurgia ogólna i naczyniowa',icon:'🩹',yearGroup:clinical,topics:[
+      {title:'Chirurgia ogólna i urazy',level:'studia',subtopics:['Badanie chirurgiczne','Ostry brzuch','Zapalenie wyrostka robaczkowego','Niedrożność przewodu pokarmowego','Przepukliny','Krwawienie i wstrząs','Oparzenia','Rany i zakażenia chirurgiczne','Opieka okołooperacyjna','Podstawy technik chirurgicznych']},
+      {title:'Chirurgia naczyniowa',level:'studia',subtopics:['Niedokrwienie kończyn','Przewlekła choroba tętnic obwodowych','Tętniak aorty','Rozwarstwienie aorty','Żylna choroba zakrzepowo-zatorowa','Przewlekła niewydolność żylna','Dostęp naczyniowy','Diagnostyka dopplerowska','Leczenie endowaskularne']}
+    ]},
+    gynecology:{name:'Ginekologia i Położnictwo',icon:'🤰',yearGroup:clinical,topics:[
+      {title:'Położnictwo',level:'studia',subtopics:['Fizjologia ciąży','Opieka prenatalna','Diagnostyka prenatalna','Poród fizjologiczny','Poród przedwczesny','Nadciśnienie w ciąży','Cukrzyca ciążowa','Krwotok poporodowy','Połóg i laktacja','Stany nagłe w położnictwie']},
+      {title:'Ginekologia',level:'studia',subtopics:['Cykl miesiączkowy','Zaburzenia miesiączkowania','Endometrioza','Zespół policystycznych jajników','Antykoncepcja','Niepłodność','Zakażenia ginekologiczne','Nowotwory szyjki macicy i HPV','Nowotwory jajnika i endometrium','Profilaktyka i badanie ginekologiczne']}
+    ]},
+    neurology:{name:'Neurologia',icon:'🧠',yearGroup:clinical,topics:[
+      {title:'Diagnostyka neurologiczna i stany nagłe',level:'studia',subtopics:['Badanie neurologiczne','Udar niedokrwienny','Krwotok śródczaszkowy','TIA','Padaczka i stan padaczkowy','Bóle głowy','Zapalenie opon mózgowo-rdzeniowych','Stwardnienie rozsiane','Choroby nerwowo-mięśniowe','Interpretacja TK, MR i EEG']},
+      {title:'Choroby neurodegeneracyjne i obwodowe',level:'studia',subtopics:['Choroba Parkinsona','Otępienie i choroba Alzheimera','Stwardnienie zanikowe boczne','Choroby nerwów obwodowych','Miastenia','Zespół Guillaina-Barrégo','Zaburzenia ruchu','Zawroty głowy','Ból neuropatyczny']}
+    ]},
+    psychiatry:{name:'Psychiatria',icon:'🧠',yearGroup:clinical,topics:[
+      {title:'Zaburzenia psychiczne i diagnostyka',level:'studia',subtopics:['Badanie stanu psychicznego','Zaburzenia depresyjne','Choroba afektywna dwubiegunowa','Zaburzenia lękowe','Schizofrenia i psychozy','Zaburzenia osobowości','Zaburzenia odżywiania','Uzależnienia','Ocena ryzyka samobójczego','Zaburzenia neurokognitywne']},
+      {title:'Leczenie i sytuacje kryzysowe',level:'studia',subtopics:['Psychoterapia i farmakoterapia','Leki przeciwdepresyjne','Leki przeciwpsychotyczne','Stabilizatory nastroju','Zespół serotoninowy i złośliwy neuroleptyczny','Majaczenie','Przymus bezpośredni i zasady prawne','Komunikacja terapeutyczna']}
+    ]},
+    infectiousDiseases:{name:'Choroby zakaźne',icon:'🦠',yearGroup:clinical,topics:[
+      {title:'Zakażenia układowe i diagnostyka',level:'studia',subtopics:['Gorączka o nieustalonej przyczynie','Sepsa i wstrząs septyczny','Zakażenia układu oddechowego','Zakażenia układu moczowego','Zakażenia ośrodkowego układu nerwowego','HIV i AIDS','Gruźlica','Wirusowe zapalenia wątroby','Borelioza','Diagnostyka mikrobiologiczna i antybiogram']},
+      {title:'Leczenie przeciwdrobnoustrojowe i profilaktyka',level:'studia',subtopics:['Racjonalna antybiotykoterapia','Leki przeciwwirusowe','Leki przeciwgrzybicze','Leki przeciwpasożytnicze','Izolacja i kontrola zakażeń','Szczepienia podróżnych','Zakażenia szpitalne','Oporność wielolekooporna']}
+    ]},
+    dermatology:{name:'Dermatologia',icon:'🩹',yearGroup:clinical,topics:[
+      {title:'Choroby skóry i przydatków',level:'studia',subtopics:['Wykwity pierwotne i wtórne','Atopowe zapalenie skóry','Łuszczyca','Trądzik','Pokrzywka i obrzęk naczynioruchowy','Zakażenia bakteryjne i grzybicze skóry','Choroby pęcherzowe','Choroby włosów i paznokci','Zmiany polekowe','Dermatoskopia']},
+      {title:'Nowotwory i stany nagłe dermatologiczne',level:'studia',subtopics:['Czerniak','Rak podstawnokomórkowy','Rak kolczystokomórkowy','Badanie znamion','Rumień wielopostaciowy','Zespół Stevensa-Johnsona','Martwica toksyczno-rozpływna naskórka','Fotoprotekcja']}
+    ]},
+    ophthalmology:{name:'Okulistyka',icon:'👁️',yearGroup:clinical,topics:[
+      {title:'Badanie okulistyczne i choroby przedniego odcinka',level:'studia',subtopics:['Ostrość wzroku i refrakcja','Badanie w lampie szczelinowej','Zapalenie spojówek','Zapalenie rogówki','Zaćma','Jaskra','Urazy gałki ocznej','Czerwone oko — diagnostyka różnicowa','Wady refrakcji','Badanie dna oka']},
+      {title:'Siatkówka i nagłe stany okulistyczne',level:'studia',subtopics:['Odwarstwienie siatkówki','Zwyrodnienie plamki','Retinopatia cukrzycowa','Niedrożność tętnicy i żyły siatkówki','Utrata widzenia — diagnostyka pilna','Neuropatie nerwu wzrokowego','Ciało obce i oparzenia chemiczne']}
+    ]},
+    otolaryngology:{name:'Otorynolaryngologia',icon:'👂',yearGroup:clinical,topics:[
+      {title:'Ucho, nos i zatoki',level:'studia',subtopics:['Badanie ucha i otoskopia','Zapalenie ucha środkowego','Niedosłuch przewodzeniowy i odbiorczy','Zawroty głowy','Krwawienie z nosa','Zapalenie zatok','Niedrożność nosa','Urazy nosa','Audiometria','Ciała obce w uchu i nosie']},
+      {title:'Gardło, krtań i stany nagłe',level:'studia',subtopics:['Angina i ropień okołomigdałkowy','Dysfagia','Chrypka i diagnostyka krtani','Nowotwory głowy i szyi','Obturacja dróg oddechowych','Tracheotomia — wskazania','Urazy krtani','Badanie węzłów chłonnych szyi']}
+    ]},
+    orthopedics:{name:'Ortopedia i Traumatologia',icon:'🦴',yearGroup:clinical,topics:[
+      {title:'Urazy układu ruchu',level:'studia',subtopics:['Ocena urazu i badanie neuro-naczyniowe','Złamania i klasyfikacje','Zwichnięcia','Złamania otwarte','Zespół ciasnoty przedziałów powięziowych','Urazy kręgosłupa','Urazy miednicy','Urazy kończyny górnej','Urazy kończyny dolnej','Zasady unieruchamiania']},
+      {title:'Choroby ortopedyczne',level:'studia',subtopics:['Choroba zwyrodnieniowa stawów','Osteoporoza i złamania niskoenergetyczne','Zakażenia kości i stawów','Ból kręgosłupa','Skolioza','Choroby stawu biodrowego','Rehabilitacja po urazie','Diagnostyka RTG, TK i MR']}
+    ]},
+    anesthesiology:{name:'Anestezjologia i Intensywna Terapia',icon:'🫁',yearGroup:clinical,topics:[
+      {title:'Znieczulenie i opieka okołooperacyjna',level:'studia',subtopics:['Ocena przedoperacyjna i ASA','Znieczulenie ogólne','Znieczulenie regionalne','Zabezpieczenie dróg oddechowych','Intubacja i wentylacja','Leki anestetyczne','Monitorowanie śródoperacyjne','Ból pooperacyjny','Powikłania znieczulenia','Opieka pooperacyjna']},
+      {title:'Intensywna terapia',level:'studia',subtopics:['Wstrząs i hemodynamika','Sepsa i niewydolność wielonarządowa','Wentylacja mechaniczna','ARDS','Sedacja i analgezja','Żywienie krytycznie chorych','Ostra niewydolność nerek','Monitorowanie inwazyjne','Ograniczenie terapii daremnej','Opieka nad dawcą narządów']}
+    ]},
+    emergencyMedicine:{name:'Medycyna Ratunkowa',icon:'🚑',yearGroup:clinical,topics:[
+      {title:'Pierwsza ocena i resuscytacja',level:'studia',subtopics:['Schemat ABCDE','Podstawowe i zaawansowane zabiegi resuscytacyjne','Defibrylacja i kardiowersja','Drożność dróg oddechowych','Dostęp naczyniowy i doszpikowy','Wstrząs i płynoterapia','Uraz wielonarządowy','Uraz czaszkowo-mózgowy','Hipotermia i hipertermia','Triage i segregacja medyczna']},
+      {title:'Ostre stany internistyczne i zatrucia',level:'studia',subtopics:['Ból w klatce piersiowej','Duszność','Udar i zaburzenia świadomości','Drgawki','Anafilaksja','Ostre zaburzenia glikemii','Zatrucia i odtrutki','Ostry brzuch','Krwotok','Dokumentacja i przekazanie pacjenta']}
+    ]},
+    radiology:{name:'Radiologia i Diagnostyka Obrazowa',icon:'🩻',yearGroup:clinical,topics:[
+      {title:'Metody obrazowania i bezpieczeństwo',level:'studia',subtopics:['RTG — projekcje i podstawy interpretacji','Ultrasonografia','Tomografia komputerowa','Rezonans magnetyczny','Mammografia','Medycyna nuklearna','Środki kontrastowe','Reakcje niepożądane na kontrast','Ochrona radiologiczna','Dobór badania do pytania klinicznego']},
+      {title:'Obrazowanie układów i stanów nagłych',level:'studia',subtopics:['RTG klatki piersiowej','TK w udarze','Obrazowanie urazów','USG jamy brzusznej','Obrazowanie układu moczowego','Obrazowanie kości i stawów','Zmiany ogniskowe w wątrobie','Diagnostyka obrazowa zatorowości płucnej','Ocena krwawienia','Ograniczenia i artefakty obrazowania']}
+    ]}
+  });
+
+  const appendTopics = (subject, topics) => {
+    const titles = new Set(subject.topics.map(topic => topic.title.toLocaleLowerCase()));
+    subject.topics.push(...topics.filter(topic => !titles.has(topic.title.toLocaleLowerCase())));
+  };
+  appendTopics(liceum.polish, [
+    {title:'Lektury obowiązkowe — szkoła podstawowa i konteksty',level:'podstawowy',subtopics:['Akademia pana Kleksa — Jan Brzechwa','Kajko i Kokosz. Szkoła latania — Janusz Christa','Opowieści z Narnii. Lew, czarownica i stara szafa — C.S. Lewis','Chłopcy z Placu Broni — Ferenc Molnár','Hobbit, czyli tam i z powrotem — J.R.R. Tolkien','Opowieść wigilijna — Charles Dickens','Zemsta — Aleksander Fredro','Dziady część II — Adam Mickiewicz','Mały Książę — Antoine de Saint-Exupéry','Kamienie na szaniec — Aleksander Kamiński','Syzyfowe prace — Stefan Żeromski','Latarnik — Henryk Sienkiewicz','Artysta — Sławomir Mrożek','Wybrane opowiadania i utwory poetyckie z podstawy programowej','Motywy, bohaterowie i problemy etyczne lektur']},
+    {title:'Język polski — gramatyka i środki językowe CKE',level:'rozszerzony',subtopics:['Fleksja i części mowy','Składnia zdania pojedynczego i złożonego','Mowa zależna i niezależna','Słowotwórstwo i znaczenie wyrazów','Frazeologizmy i ich funkcje','Zapożyczenia i neologizmy','Stylizacja i odmiany polszczyzny','Funkcje środków retorycznych','Spójność i logika wypowiedzi','Interpunkcja w wypowiedzi argumentacyjnej','Poprawność językowa i ortograficzna','Notatka syntetyzująca i praca z tekstem nieliterackim']}
+  ]);
+  appendTopics(liceum.english, [
+    {title:'Matura rozszerzona — funkcje językowe i strategie CKE',level:'rozszerzony',subtopics:['Reagowanie językowe w sytuacjach formalnych','Reagowanie językowe w sytuacjach nieformalnych','Parafraza i transformacje zdań','Słowotwórstwo i dobór formy wyrazu','Kolokacje i czasowniki frazowe','Rozpoznawanie intencji autora','Wnioskowanie z kontekstu','Uzupełnianie luk leksykalno-gramatycznych','Spójność i środki łączące','Wypowiedź argumentacyjna z kontrargumentem','Opis ilustracji i pytania uzupełniające','Kryteria oceny wypowiedzi pisemnej']}
+  ]);
+  appendTopics(liceum.german, [
+    {title:'Matura z języka niemieckiego — strategie i komunikacja',level:'rozszerzony',subtopics:['Funkcje językowe w sytuacjach codziennych','Rejestr formalny i nieformalny','Rekcja czasowników i przymiotników','Słowotwórstwo i złożenia','Czasowniki rozdzielnie i nierozdzielnie złożone','Transformacje i parafraza','Rozumienie intencji nadawcy','Wnioskowanie z kontekstu','Uzupełnianie luk leksykalno-gramatycznych','E-mail i list zgodny z poleceniem','Wypowiedź argumentacyjna','Opis ilustracji i interakcja ustna']}
+  ]);
+  appendTopics(liceum.french, [
+    {title:'Matura z języka francuskiego — strategie i komunikacja',level:'rozszerzony',subtopics:['Fonctions communicatives en situation','Registre formel et informel','Discours rapporté et concordance des temps','Formation des mots et familles lexicales','Locutions verbales et prépositions','Paraphrase et transformation','Compréhension de l’intention','Inférence à partir du contexte','Texte à trous lexical et grammatical','Courriel et lettre selon la consigne','Argumentation et connecteurs','Description d’image et interaction orale']}
+  ]);
+
+  appendTopics(medical.anatomy, [
+    {title:'Anatomia klatki piersiowej i układu oddechowego',level:'studia',subtopics:['Ściany i otwory klatki piersiowej','Opłucna i zachyłki opłucnowe','Drzewo oskrzelowe i segmenty płuc','Śródpiersie i jego podział','Przepona i jej otwory','Serce — topografia i projekcja zastawek','Aorta i główne naczynia klatki piersiowej','Nerwy błędne i przeponowe','Anatomia radiologiczna klatki piersiowej','Dostępy i korelacje kliniczne']},
+    {title:'Anatomia jamy brzusznej i miednicy',level:'studia',subtopics:['Otrzewna i przestrzenie zaotrzewnowe','Żołądek, jelito cienkie i grube','Wątroba, drogi żółciowe i trzustka','Unaczynienie trzewne i krążenie wrotne','Nerki, nadnercza i moczowody','Przestrzeń zaotrzewnowa','Dno miednicy i krocze','Narządy miednicy mniejszej','Unaczynienie i unerwienie miednicy','Anatomia przekrojowa TK i MR']},
+    {title:'Głowa, szyja i narządy zmysłów',level:'studia',subtopics:['Podstawa czaszki i doły czaszki','Mięśnie i powięzie szyi','Przestrzenie szyi i trójkąty topograficzne','Jama ustna, gardło i krtań','Tarczyca i przytarczyce','Oczodół i gałka oczna','Ucho zewnętrzne, środkowe i wewnętrzne','Nerwy czaszkowe w obrębie głowy','Tętnice i żyły głowy i szyi','Drogi szerzenia zakażeń i nowotworów']}
+  ]);
+  appendTopics(medical.physiology, [
+    {title:'Fizjologia krwi i odporności',level:'studia',subtopics:['Erytrocyty i erytropoeza','Hemoglobina i transport gazów','Grupy krwi i zgodność transfuzji','Hemostaza pierwotna i wtórna','Fibrynoliza','Odporność wrodzona i nabyta','Układ dopełniacza','Reakcje nadwrażliwości','Podstawy immunizacji','Reakcja zapalna']},
+    {title:'Fizjologia przewodu pokarmowego i wątroby',level:'studia',subtopics:['Motoryka przewodu pokarmowego','Wydzielanie żołądkowe i jelitowe','Trawienie i wchłanianie składników','Regulacja hormonalna trawienia','Funkcje zewnątrzwydzielnicze trzustki','Krążenie wrotne i funkcje wątroby','Metabolizm bilirubiny','Gospodarka żelazem i witaminami','Mikrobiota jelitowa','Mechanizmy głodu i sytości']},
+    {title:'Fizjologia nerek, rozrodu i układu nerwowego',level:'studia',subtopics:['Filtracja kłębuszkowa i autoregulacja','Transport kanalikowy','Zagęszczanie i rozcieńczanie moczu','Regulacja objętości i osmolalności','Regulacja równowagi kwasowo-zasadowej','Oś podwzgórze-przysadka-gonady','Cykl jajnikowy i spermatogeneza','Fizjologia ciąży i laktacji','Czucie somatyczne i ból','Sen, czuwanie i funkcje autonomiczne']}
+  ]);
+  appendTopics(medical.biochemistry, [
+    {title:'Metabolizm narządowy i regulacja hormonalna',level:'studia',subtopics:['Stan poposiłkowy i głodzenie','Metabolizm wątroby','Metabolizm mięśni','Metabolizm tkanki tłuszczowej','Cykl Corich i cykl alaninowy','Regulacja insuliną i glukagonem','Adrenalina i kortyzol w metabolizmie','Witaminy jako koenzymy','Stres oksydacyjny i antyoksydanty','Biochemiczne podstawy cukrzycy']},
+    {title:'Diagnostyka biochemiczna i biologia molekularna',level:'studia',subtopics:['Enzymy diagnostyczne','Markery uszkodzenia mięśnia sercowego','Profil lipidowy','Elektroforeza białek','PCR i RT-PCR','Sekwencjonowanie DNA','Metody immunochemiczne','Walidacja i interpretacja wyniku laboratoryjnego','Błędy przedanalityczne','Zastosowanie diagnostyki molekularnej']}
+  ]);
+  appendTopics(medical.pathology, [
+    {title:'Patomorfologia układów narządowych',level:'studia',subtopics:['Miażdżyca i choroba niedokrwienna serca','Patologia wad i chorób zastawkowych','Choroby obturacyjne i śródmiąższowe płuc','Zapalenia i nowotwory przewodu pokarmowego','Choroby kłębuszków i cewek nerkowych','Patologia wątroby i dróg żółciowych','Choroby endokrynnych gruczołów dokrewnych','Patologia układu rozrodczego','Choroby ośrodkowego układu nerwowego','Korelacja obrazu makro- i mikroskopowego']}
+  ]);
+  appendTopics(medical.internal, [
+    {title:'Geriatria, onkologia i opieka paliatywna',level:'studia',subtopics:['Całościowa ocena geriatryczna','Wielochorobowość i polipragmazja','Zespół kruchości i upadki','Diagnostyka niedożywienia','Podstawy diagnostyki onkologicznej','Stany nagłe w chorobie nowotworowej','Leczenie bólu i objawów','Komunikacja o celach opieki','Opieka u kresu życia','Koordynacja opieki wielodyscyplinarnej']},
+    {title:'Choroby alergiczne i diagnostyka różnicowa',level:'studia',subtopics:['Alergiczny nieżyt nosa','Anafilaksja','Niedobory odporności u dorosłych','Gorączka o nieustalonej przyczynie','Utrata masy ciała i objawy ogólne','Choroby rzadkie — podejście diagnostyczne','Interpretacja badań laboratoryjnych','Wielochorobowość i priorytety leczenia']}
+  ]);
+
+  Object.assign(medical, {
+    familyMedicine:{name:'Medycyna Rodzinna',icon:'🏥',yearGroup:clinical,topics:[
+      {title:'Podstawowa opieka zdrowotna',level:'studia',subtopics:['Wywiad i badanie w POZ','Opieka nad pacjentem z wielochorobowością','Profilaktyka i badania przesiewowe','Szczepienia dorosłych','Opieka nad dzieckiem zdrowym','Najczęstsze infekcje w POZ','Nadciśnienie i cukrzyca w opiece ambulatoryjnej','Zdrowie psychiczne w POZ','Koordynacja diagnostyki i skierowań','Komunikacja lekarz-pacjent']},
+      {title:'Medycyna rodzinna — decyzje i ciągłość opieki',level:'studia',subtopics:['Podejmowanie decyzji przy niepewności','Czerwone flagi i pilne skierowanie','Opieka domowa i środowiskowa','Profilaktyka uzależnień','Opieka nad osobą starszą','Dokumentacja i tajemnica lekarska','Edukacja zdrowotna','Współpraca z zespołem terapeutycznym']}
+    ]},
+    publicHealth:{name:'Zdrowie Publiczne i Epidemiologia',icon:'📊',yearGroup:preclinical,topics:[
+      {title:'Epidemiologia i badania kliniczne',level:'studia',subtopics:['Zapadalność i chorobowość','Ryzyko względne i iloraz szans','Czułość i swoistość testu','Wartość predykcyjna','Badanie kohortowe i kliniczno-kontrolne','Randomizacja i zaślepienie','Błąd systematyczny i zakłócenie','Interpretacja przedziału ufności','Ocena dowodów naukowych','Zasady medycyny opartej na faktach']},
+      {title:'Profilaktyka i organizacja ochrony zdrowia',level:'studia',subtopics:['Poziomy profilaktyki','Szczepienia populacyjne','Nadzór epidemiologiczny','Zakażenia związane z opieką zdrowotną','Higiena i kontrola zakażeń','Nierówności w zdrowiu','Promocja zdrowia','Organizacja systemu ochrony zdrowia','Etyka zdrowia publicznego','Komunikacja ryzyka']}
+    ]},
+    forensicMedicine:{name:'Medycyna Sądowa i Etyka Lekarska',icon:'⚖️',yearGroup:clinical,topics:[
+      {title:'Medycyna sądowa',level:'studia',subtopics:['Ustalanie przyczyny i mechanizmu zgonu','Badanie pośmiertne','Obrażenia i ich dokumentowanie','Zabezpieczenie materiału biologicznego','Toksykologia sądowa','Sądowo-lekarska ocena uszczerbku','Opinia biegłego','Łańcuch zabezpieczenia dowodów','Identyfikacja osób','Zawiadomienie o zgonie i obowiązki lekarza']},
+      {title:'Etyka i prawo w praktyce klinicznej',level:'studia',subtopics:['Świadoma zgoda','Tajemnica lekarska','Zdolność do świadomego podejmowania decyzji','Odpowiedzialność zawodowa','Błąd medyczny i zdarzenie niepożądane','Dokumentacja medyczna','Ochrona danych pacjenta','Konflikty interesów','Opieka nad małoletnim','Etyczne aspekty końca życia']}
+    ]},
+    rehabilitation:{name:'Rehabilitacja Medyczna',icon:'♿',yearGroup:clinical,topics:[
+      {title:'Ocena funkcjonalna i planowanie rehabilitacji',level:'studia',subtopics:['Badanie funkcjonalne','Skale sprawności i niesamodzielności','Cele rehabilitacji','Rehabilitacja po udarze','Rehabilitacja kardiologiczna','Rehabilitacja pulmonologiczna','Rehabilitacja po urazach','Spastyczność i przykurcze','Ortezy i protezy','Współpraca interdyscyplinarna']},
+      {title:'Ból przewlekły i powrót do sprawności',level:'studia',subtopics:['Mechanizmy bólu przewlekłego','Leczenie niefarmakologiczne bólu','Fizjoterapia i kinezyterapia','Ergonomia i profilaktyka wtórna','Powrót do aktywności zawodowej','Rehabilitacja osób starszych','Opieka nad osobą z niepełnosprawnością','Ocena jakości życia']}
+    ]}
+  });
+
+  const preclinicalKeys = ['histology','pathology','pharmacology','microbiology','embryology','biophysics','immunology','clinicalGenetics','pathophysiology','toxicology'];
+  preclinicalKeys.forEach(key => { medical[key].yearGroup = preclinical; });
+  Object.keys(medical).forEach(key => { if (!medical[key].yearGroup) medical[key].yearGroup = clinical; });
+})();
