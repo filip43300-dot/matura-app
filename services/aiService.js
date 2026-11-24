@@ -28,7 +28,8 @@ window.AIService = (() => {
     const cached = readCache(key);
     if (cached) return cached;
     const notationInstructions = window.NotationService?.promptInstructions('W polach explanation, formulas i answer używaj poprawnego LaTeX. Odpowiadaj profesjonalnie podręcznikowo.') || '';
-    const prompt = `Jesteś polskim ekspertem EdTech i przygotowujesz kompendium. Wygeneruj WYŁĄCZNIE poprawny JSON po polsku dla lekcji. Klucze: title, definition, explanation, formulas, visualDescription, example, answer, explanationOfAnswer, summary, coreConcepts, clinicalTip, warning, mermaid, chartjs, svg. ${notationInstructions} ` +
+    const prompt = `Jesteś polskim ekspertem EdTech i przygotowujesz kompletną lekcję szkolną. Wygeneruj WYŁĄCZNIE poprawny JSON po polsku dla lekcji. Klucze: title, objectives, definition, sections (tablica obiektów title, content, type, items, formulas, example), explanation, formulas, table, applications, commonMistakes, visualDescription, example, answer, explanationOfAnswer, summary, coreConcepts, clinicalTip, warning, mermaid, chartjs, svg. ${notationInstructions} ` +
+      `Zwróć gotową treść edukacyjną, nie HTML, nie CSS, nie JavaScript, nie Markdown-techniczny, nie instrukcje dla modelu i nie surową odpowiedź API. Każdy tekst musi być bezpieczny do pokazania uczniowi. ` +
       `Kontekst: przedmiot=${context.subject}; dział=${context.topic}; podtemat=${context.subtopic}; poziom=${context.level}. ` +
       `Wymagania: textbook-grade, ściśle odpowiadaj tylko na ten podtemat, oznaczaj kluczowe pojęcia znacznikami **pogrubienia**, wzory zapisuj w składni KaTeX, podaj 3-5 kluczowych definicji i rozwiązane zadanie z pełnym uzasadnieniem. ` +
       `Jeśli temat obejmuje proces biologiczny, fizjologiczny, kliniczny algorytm lub mapę pojęć, wpisz w mermaid poprawny kod Mermaid flowchart; w innym przypadku mermaid ma być pustym tekstem. ` +
@@ -37,7 +38,30 @@ window.AIService = (() => {
       `Uzupełnij clinicalTip korelacją kliniczną albo wskazówką maturalną, a warning częstym błędem lub pustym tekstem.`;
     const text = await request(prompt);
     let lesson;
-    try { lesson = JSON.parse(text.replace(/```json|```/g,'').trim()); } catch { lesson = {title:context.subtopic,definition:text,explanation:'',formulas:[],visualDescription:'Schemat zależności tematu',example:'',answer:'',explanationOfAnswer:'',summary:'',coreConcepts:[context.subtopic]}; }
+    try { lesson = JSON.parse(text.replace(/```json|```/g,'').trim()); } catch {
+      const cleaned = String(text)
+        .replace(/```(?:json|javascript|js|html|css|latex|markdown)?/gi,'')
+        .replace(/```/g,'')
+        .replace(/^\s*[\{\[][\s\S]*[\}\]]\s*$/,'')
+        .trim();
+      lesson = {
+        title: context.subtopic,
+        objectives: [],
+        definition: cleaned && !/^[-*_`{[]/.test(cleaned) ? cleaned : 'Podsumowanie lekcji będzie dostępne po ponownym wygenerowaniu.',
+        sections: [],
+        explanation: '',
+        formulas: [],
+        table: null,
+        applications: [],
+        commonMistakes: [],
+        visualDescription: 'Schemat zależności tematu',
+        example: '',
+        answer: '',
+        explanationOfAnswer: '',
+        summary: '',
+        coreConcepts: [context.subtopic]
+      };
+    }
     localStorage.setItem(key, JSON.stringify(lesson));
     return lesson;
   }

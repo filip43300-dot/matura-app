@@ -15,6 +15,7 @@ window.EducationStore = (() => {
     reviews: [],
     labProgress: {},
     labHistory: [],
+    lessonPositions: {},
     settings: { theme: 'dark', backendUrl: '', aiProvider: 'groq', aiModel: '' }
   };
 

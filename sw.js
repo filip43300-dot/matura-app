@@ -1,4 +1,4 @@
-const CACHE = 'matura-master-2-v6';
+const CACHE = 'matura-master-2-v7';
 const CORE = [
   './',
   './index.html',

@@ -97,6 +97,76 @@ function renderNotationContent(root,lesson){
   });
 }
 
+function configureLessonReader(){
+  if(!window.LessonReader)return;
+  window.LessonReader.configure({
+    getNeighbors(context){
+      const subject=getMode().subjects[context.subjectKey];
+      const topic=subject?.topics.find(item=>item.title===context.topic.title);
+      const subtopics=(topic?.subtopics||[]).map(item=>typeof item==='string'?item:item.name);
+      const index=subtopics.indexOf(context.subtopic);
+      const previous=index>0?subtopics[index-1]:null;
+      const next=index>=0&&index<subtopics.length-1?subtopics[index+1]:null;
+      return {
+        previous:previous?{subtopic:previous.subtopic,subjectKey:previous.subjectKey,topicTitle:previous.topic.title}:null,
+        next:next?{subtopic:next.subtopic,subjectKey:next.subjectKey,topicTitle:next.topic.title}:null
+      };
+    },
+    open(neighbor){
+      if(!neighbor)return;
+      const context=findSubjectTopic(neighbor.subjectKey,neighbor.topicTitle,neighbor.subtopic);
+      if(context)openLesson(context);
+    }
+  });
+}
+
+async function renderReaderVisuals(root,lesson){
+  const visual=root.querySelector('[data-lesson-visual]');
+  if(!visual||lesson?.__noVisual)return;
+  const mermaidSource=lesson.mermaid||'';
+  const chartSource=typeof lesson.chartjs==='string'?lesson.chartjs:lesson.chartjs?JSON.stringify(lesson.chartjs):'';
+  const svgSource=lesson.svg||'';
+  const description=lesson.visualDescription||'';
+  let rendered=false;
+  const cleanMermaid=String(mermaidSource).replace(/^```(?:mermaid)?\s*/i,'').replace(/\s*```$/,'').trim();
+  const cleanSvg=String(svgSource).replace(/^```(?:svg|xml)?\s*/i,'').replace(/\s*```$/,'').trim();
+  if(cleanMermaid&&window.mermaid){
+    const diagram=document.createElement('div');
+    diagram.className='mermaid lesson-mermaid';
+    diagram.textContent=cleanMermaid;
+    visual.appendChild(diagram);
+    try{window.mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:document.documentElement.dataset.theme==='light'?'default':'dark'});await window.mermaid.run({nodes:[diagram]});rendered=true;}catch(error){diagram.textContent='Schemat nie został poprawnie wygenerowany.';diagram.classList.add('visual-error');}
+  }
+  if(chartSource&&window.Chart){
+    try{
+      let source=JSON.parse(String(chartSource).replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim());
+      if(source?.type&&Array.isArray(source?.data?.labels)&&Array.isArray(source?.data?.datasets)){
+        const canvas=document.createElement('canvas');
+        canvas.setAttribute('aria-label','Wykres do lekcji');
+        visual.appendChild(canvas);
+        new window.Chart(canvas,{type:['line','bar','scatter','radar'].includes(source.type)?source.type:'line',data:{labels:source.data.labels.map(String),datasets:source.data.datasets.map((dataset,index)=>({label:String(dataset.label||`Seria ${index+1}`),data:Array.isArray(dataset.data)?dataset.data.map(value=>Number.isFinite(Number(value))?Number(value):null):[],borderColor:dataset.borderColor||'#2563eb',backgroundColor:dataset.backgroundColor||'rgba(37,99,235,.18)',tension:.25}))},options:{responsive:true,maintainAspectRatio:true}});
+        rendered=true;
+      }
+    }catch{const message=document.createElement('p');message.className='visual-error';message.textContent='Wykres nie został poprawnie wygenerowany.';visual.appendChild(message);}
+  }
+  if(cleanSvg){
+    const svg=safeSvgElement(cleanSvg);
+    if(svg){visual.appendChild(svg);rendered=true;}
+  }
+  if(description){
+    const descriptionElement=document.createElement('p');
+    descriptionElement.className='lesson-visual-description';
+    descriptionElement.textContent=LessonReader.sanitizeEducationalText(description);
+    visual.appendChild(descriptionElement);
+  }
+  if(!rendered&&!description){
+    const fallback=document.createElement('p');
+    fallback.className='lesson-visual-description';
+    fallback.textContent='Ilustracja nie jest dostępna dla tego tematu.';
+    visual.appendChild(fallback);
+  }
+}
+
 function safeSvgElement(svgText){
   if(!svgText)return null;
   const parsed=new DOMParser().parseFromString(svgText,'image/svg+xml');
@@ -185,11 +255,21 @@ async function renderLessonVisuals(root){
 
 async function openLesson(context){
   state.subject=context.subjectKey;state.topic=context.topic.title;state.subtopic=context.subtopic;
+  window.lessonReaderLevel=state.level;
   const contextToAI={subject:context.subject.name,topic:context.topic.title,subtopic:context.subtopic,level:state.level};
   const panel=$('detailPanel');
   panel.classList.remove('hidden');
-  panel.innerHTML=lessonShell(context,{title:'Generowanie lekcji…',definition:'Groq AI przygotowuje treść dopasowaną do poziomu i przedmiotu.',explanation:'',formulas:[],visualDescription:'Schemat zostanie wygenerowany.',example:'',answer:'',explanationOfAnswer:'',summary:'',coreConcepts:[]});
-  try{const lesson=await window.AIService.generateLesson(contextToAI);panel.innerHTML=lessonShell(context,lesson);renderNotationContent(panel,lesson);await renderLessonVisuals(panel);}catch(error){panel.innerHTML=lessonShell(context,{title:context.subtopic,definition:'Lekcja nie została wygenerowana.',explanation:error.message,formulas:[],visualDescription:'Dodaj klucz API, aby wygenerować szczegółową treść.',example:'',answer:'',explanationOfAnswer:'',summary:'',coreConcepts:[context.subtopic]});renderNotationContent(panel,{...error,explanation:error.message});}
+  panel.className='detail-panel lesson-reader-open';
+  if(window.LessonReader)LessonReader.renderLoading(context);
+  try{
+    const lesson=await window.AIService.generateLesson(contextToAI);
+    configureLessonReader();
+    if(window.LessonReader)LessonReader.render(context,lesson);
+    await renderReaderVisuals(panel,lesson);
+  }catch(error){
+    configureLessonReader();
+    if(window.LessonReader)LessonReader.render(context,{title:context.subtopic,definition:'Lekcja nie została wygenerowana.',explanation:error.message,summary:'Skonfiguruj klucz Groq lub backend AI, aby wygenerować pełną treść lekcji.',coreConcepts:[context.subtopic],warning:'Komunikat techniczny nie został wyświetlony uczniowi jako surowy kod.'});
+  }
   renderMath(panel);
   await generateAndRenderQuiz();
 }
